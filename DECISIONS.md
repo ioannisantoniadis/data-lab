@@ -20,6 +20,19 @@ Recruiting during Phase 1 keeps Phase 2 from waiting.
 
 ## Closed
 
+### D8. Gate 1 decisions (2026-10-04)
+
+The owner accepted the Phase 1 recommendations (`ROADMAP.md`, *What Phase 1 showed*):
+
+1. **Claim 16 includes the pool-selector results** (the lower bound; a linear pool keeps
+   uniform's exponent; a pool of size n^(1+α) recovers the oracle's). SPEC v0.3 §8.
+2. **Claim 13 uses T5's synthetic side label,** which has exactly known invariances.
+3. **The signature figure is accepted;** chapter 13 keeps the long tail as planned.
+4. **Phase 1 committed locally** (not pushed).
+
+Gate 1 passed. Phase 2 (chapters 1–7) waits for the owner's go-ahead.
+
+
 ### D7. Gate 0 decisions (2026-10-04)
 
 The owner accepted the Phase 0 recommendations (`ROADMAP.md`, `review.md`), applied in SPEC v0.2:

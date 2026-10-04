@@ -63,13 +63,51 @@ Status markers: planned · researching · drafted · done (passes the quality ba
    q(y), not π_y (siblings reserve π for policies), so claim 10 is restated; Hutter's θ_i is
    p_i; σ is the sigmoid, so noise scale is σ_ε.
 
-## Phase 1: testbeds and the signature figure: in progress (started 2026-10-04)
+## Phase 1: testbeds and the signature figure (2026-10-04): done; ⛳ Gate 1 passed 2026-10-04 (DECISIONS D8)
 
-- Implement T1–T5 with their tests; size T2's support from n and α (`review.md` issue 8).
-- Derive and test §7's coverage-selection extension, including a non-oracle selector.
-- Claims 14–16 unskipped.
-- Signature figure; look at it. ⛳ Gate 1.
-- Social-preview image (generated, like any figure), added only once D5 allows a public site.
+- [x] T1–T5 implemented in `src/data_lab/testbeds/`, each with ground-truth tests:
+  - T1: 7 tests, against SciPy's lognorm, quadrature and Monte Carlo;
+  - T2: 20 tests (claims 14–16, plus the selection derivation);
+  - T3: 7 tests, including a primal reference solver compared by objective value;
+  - T4: 5 tests, including an entropy-rate check by brute-force enumeration;
+  - T5: 4 tests, including exact invariance of the synthetic label.
+- [x] §7's coverage-selection extension derived and tested, with a non-oracle (pool) selector
+      added (docs/appendix-testbeds.qmd, section T2).
+- [x] Signature figure `fig_long_tail_signature.py` → `docs/images/long_tail_signature.png`
+      (about 9 s), inspected twice; included in the testbeds appendix.
+- [x] Testbeds appendix written (T1–T5, each with what it cannot show); notation extended.
+- [x] Checks: `ruff` clean; `pytest`: 71 passed, 18 skipped (claim stubs for Phases 2–3), 6 s;
+      `quarto render docs`: 0 warnings; 3,288 prose words.
+
+### What Phase 1 showed (and why it matters for Part IV)
+
+1. **SPEC §7's extension holds.** The oracle coverage selector's error is sum_{i>n} p_i,
+   between (n+1)^−α and n^−α over αζ(α+1): exponent α against uniform's α/(1+α). It is still a
+   power law.
+2. **New result: what a non-oracle selector can buy is limited by its unlabeled pool.** A
+   selector that ranks features by their count in a pool of M draws has expected error ≥
+   max(oracle at n, E_M).
+   - With M ∝ n it keeps uniform's exponent: a constant-factor gain only (slopes −0.49 to
+     −0.51 at α = 1 over 10 seed sets).
+   - With M = n^(1+α) it reaches the oracle's exponent (slopes −0.99 to −1.01), at about 1.45
+     times the oracle's error.
+
+   This sharpens the thesis: in this model, selection steepens the power law only if the pool
+   of candidates grows superlinearly in the labeling budget. It is a natural bridge to active
+   learning and to Dohmatob et al.'s "acquiring the missing tail".
+3. **Hutter's coefficient for the normalized Zipf distribution** (his eq. 4 rescaled) matches
+   the exact sum to 0.1%, so the figure's guide lines are computed, not fitted.
+4. **The max-margin solver needed an exact polish.** L-BFGS-B alone stopped 2·10⁻⁵ short of
+   the optimum, which the primal reference test caught. With the active-set polish, the
+   duality gap is below 10⁻¹⁴.
+
+### Applied to SPEC v0.3 at Gate 1 (D8)
+
+- Claim 16: add the pool-selector results (bound; linear pool keeps uniform's exponent; a pool
+  of size n^(1+α) recovers the oracle's). Tests exist already.
+- The signature figure's panel B is as specified, plus the pool selectors.
+- T5 images: a synthetic "side" label gives exact invariance (up–down flip) and exact label
+  reversal (left–right flip); digit-class labels alone have no exactly known invariance.
 
 ## Phase 2: Parts I and II: planned
 
@@ -92,7 +130,7 @@ Chapter 15, the Map, the appendices, the final audit, the success tests. Publica
 | Phase | Started | Gate reached |
 |---|---|---|
 | 0 | 2026-10-04 | 2026-10-04 |
-| 1 | 2026-10-04 | |
+| 1 | 2026-10-04 | 2026-10-04 |
 
 ## Decision log
 

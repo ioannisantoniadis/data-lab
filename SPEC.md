@@ -1,6 +1,7 @@
 # SPEC: data for learning, from first principles
 
-**Status:** v0.2, 2026-10-04 (v0.1 revised at Gate 0: see `DECISIONS.md` D7 and `review.md`). Repo `data-lab`; title *What the Model Sees: Training
+**Status:** v0.3, 2026-10-04 (revised at Gate 0, `DECISIONS.md` D7 and `review.md`; and at
+Gate 1, D8). Repo `data-lab`; title *What the Model Sees: Training
 Data from First Principles* (see [`DECISIONS.md`](DECISIONS.md)); license MIT. This file is the implementation contract for the agent that
 builds the book. Read it end to end before writing anything.
 
@@ -424,11 +425,16 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
 12. Importance weighting with the true density ratio gives an unbiased risk estimate under
     covariate shift, with variance that grows as the shift grows (T1).
 13. Augmenting with a transform the true function is invariant to does not hurt test error
-    (and helps at small n). Augmenting with a non-invariant transform does hurt (T5 or T1).
+    (and helps at small n). Augmenting with a non-invariant transform does hurt. On T5, use
+    the synthetic side label: it is exactly invariant under an up-down flip and exactly
+    reversed by a left-right flip (digit classes have no exactly known invariance; D8).
 14. Hutter's exact sum matches Monte Carlo simulation of the memorizing learner (T2).
 15. The log-log slope of E_n approaches −α/(1+α) on T2 for several α.
 16. Coverage-driven selection beats uniform sampling at equal budget on T2, at the derived rate
-    (§7).
+    (§7): the oracle reaches n^−α against uniform's n^−α/(1+α), still a power law. A selector
+    that knows nothing about p and labels the most frequent features of an unlabeled pool of M
+    draws has expected error at least max(oracle at n, E_M). With M ∝ n it keeps uniform's
+    exponent; with M = n^(1+α) it recovers the oracle's (D8).
 17. On T3, keeping hard examples beats keeping easy ones when initial data is abundant, and the
     reverse when it is scarce (multi-seed; quote the number of seeds that show it).
 18. Removing duplicates from T4 lowers the measured test cross-entropy optimism caused by

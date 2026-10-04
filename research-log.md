@@ -188,3 +188,32 @@ as logged above.
 - **§8 "Phase 2 makes them pass"** vs. §15 (Parts III–IV in Phase 3) → stubs skip with their
   chapter's phase.
 - **SPEC Appendix A "confirm the journal year" (SMOTE)** → 2002 (Crossref).
+
+## 2026-10-04: Phase 1 (testbeds and the signature figure)
+
+| Source | URL | Depth | Verified | Used for |
+|---|---|---|---|---|
+| Sorscher et al. 2022, arXiv 2206.14486v6 | https://arxiv.org/pdf/2206.14486v6 | passage (§2.3; App. A.1; App. C, "Perceptron in the teacher-student setting") | x ~ N(0, I_N); teacher uniform on the sphere of radius sqrt(N); y = sign(T.x); keep fraction f of smallest-margin examples along a probe at angle theta; student = max-margin solution (QP via CVXPY in the paper); eps_g = arccos(R)/pi; simulations N = 200, alpha_tot = P/N from 10^0.1 to 10^0.5, 100 draws. "the solution to which SGD converges on separable data" is the paper's wording | T3 |
+| SciPy 1.18.1 `scipy.special.zeta` docstring | installed package | doc | two-argument form is the Hurwitz zeta, sum_{k>=0} (k+q)^-x | T2 tail masses |
+| NumPy 2.5.3 `Generator.zipf`, `Generator.multinomial` docstrings | installed package | doc | zipf pmf k^-a / zeta(a), k >= 1; multinomial's last category takes the remaining mass | T2 sampling |
+| SciPy 1.18.1 `scipy.stats.lognorm` docstring | installed package | doc | Y = exp(X), X ~ N(mu, sigma) is lognorm(s=sigma, scale=exp(mu)) | T1 reference in tests |
+| SciPy 1.18.1 `scipy.signal.stft` signature and docstring | installed package | doc | default window is 'hann_periodic' in this version; T5 passes every parameter explicitly | T5 |
+| scikit-learn 1.9.1 `load_digits` docstring and package data | installed package | doc | 1,797 8x8 images, 10 classes, a copy of the UCI test set; `sklearn/datasets/data/digits.csv.gz` ships with the package (no download) | T5 |
+
+**Derived in Phase 1, not from a source** (all checked by tests; see docs/appendix-testbeds.qmd):
+
+- Hutter's coefficient for the normalized Zipf p: c = zeta(a+1)^(-1/(a+1)) Gamma(a/(1+a)) / (a+1).
+  It is Hutter's eq. 4 applied to theta_i = A i^-(a+1) with A = 1/zeta(a+1), and it matches the
+  exact sum to 0.1% at n = 10^6.
+- Oracle coverage error: sum_{i>n} p_i, between (n+1)^-a and n^-a over a zeta(a+1) (integral
+  comparison). **SPEC §7's extension holds**: rate n^-a against uniform's n^-a/(1+a). It is
+  still a power law.
+- **New:** a selector that knows nothing about p and labels the top-n features of an
+  unlabeled pool of M draws has expected error >= max(oracle_n, E_M). With M proportional to
+  n, its exponent is uniform's (measured slopes -0.493 to -0.512 at a = 1, 10 seed sets); with
+  M = n^2 = n^(1+a) it reaches the oracle's (slopes -0.990 to -1.008), at about 1.45 times the
+  oracle's error.
+
+**A solver problem, found and fixed.** L-BFGS-B alone stopped 2e-5 (relative) short of the
+max-margin optimum in the primal reference comparison. An active-set polish now solves the
+KKT system exactly (duality gap below 1e-14 over 90 solves at the paper's sizes).

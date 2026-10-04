@@ -65,5 +65,8 @@ From the `ioannisantoniadis/claude-skills` marketplace:
   standalone status decided.
 - **2026-10-04: Phase 0 done; ⛳ Gate 0 passed** (DECISIONS D7; SPEC v0.2). Phase 0 committed
   locally (not pushed).
-- **Next, Phase 1:** testbeds T1–T5, the coverage-selection derivation (oracle and non-oracle),
-  and the signature figure; stop at ⛳ Gate 1.
+- **2026-10-04: Phase 1 done; ⛳ Gate 1 passed** (D8; SPEC v0.3), committed locally. Testbeds T1–T5 with tests, the
+  coverage-selection derivation, and the signature figure. See ROADMAP.md, *What Phase 1
+  showed*.
+- **Next, Phase 2 (waits for the owner's go-ahead):** chapters 1–7 and claims 1–9 and 21;
+  fresh-agent audit after chapter 7; ⛳ Gate 2.

@@ -10,5 +10,6 @@ import pytest
 @pytest.mark.skip(reason="Phase 3: claim 13 not yet implemented")
 def test_invariant_augmentation_helps_noninvariant_hurts():
     """Claim 13. Augmenting with a transform the true function is invariant to does not hurt test
-    error (and helps at small n); a non-invariant transform hurts (T5 or T1).
+    error (and helps at small n); a non-invariant transform hurts. On T5, use the synthetic
+    side label (exact invariances; D8).
     """

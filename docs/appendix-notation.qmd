@@ -46,6 +46,20 @@ place where this book departs from them, and why.
 | $p_i$ | the probability of feature $i$ under the target distribution. Hutter (2021) writes $\theta_i$ |
 | $\alpha$ | the Zipf exponent: $p_i \propto i^{-(\alpha+1)}$, as in Hutter (2021). Dohmatob et al. (2024) write $p_i \propto i^{-\beta}$, so their $\beta$ is this book's $\alpha + 1$ |
 | $K$ | the support size, when the feature set is truncated for computation |
+| $E^{\text{oracle}}_n$ | the error of the oracle coverage selector that labels features $1, \dots, n$: $\sum_{i>n} p_i$ |
+| $M$ | the size of an unlabeled pool a selector may inspect |
+| $c$ | the constant in an asymptotic power law $E_n \approx c\,n^{-\beta}$ |
+| $\zeta(s)$, $\Gamma$ | the Riemann zeta function $\sum_{i\ge1} i^{-s}$; the gamma function |
+
+## The other testbeds
+
+| Symbol | Meaning |
+|---|---|
+| $z$, $\Sigma$ | T1's latent Gaussian features and their covariance; observed $x = z$ or $x = e^{z}$ |
+| $a$, $b$ | T1's regression coefficients: $\log y = a + b^\top z + \varepsilon$ |
+| $u$, $u_0$ | T1's classification coefficients: $P(y = 1 \mid z) = \sigma(u^\top z + u_0)$ |
+| $\varepsilon$ | a noise term, with standard deviation $\sigma_\varepsilon$ |
+| $\phi$ | T3: the angle between student and teacher; the test error is $\phi/\pi$ |
 
 ## Transforms
 

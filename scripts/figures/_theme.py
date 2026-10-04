@@ -96,7 +96,7 @@ def apply_theme() -> None:
             "font.sans-serif": ["Helvetica Neue", "Arial", "DejaVu Sans", "sans-serif"],
             "font.size": 11,
             "axes.titlesize": 12.5,
-            "axes.titleweight": "600",
+            "axes.titleweight": "bold",
             "axes.spines.top": False,
             "axes.spines.right": False,
             "axes.prop_cycle": plt.cycler(color=[INK_SECONDARY]),  # force explicit colors
