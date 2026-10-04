@@ -38,9 +38,9 @@ From the `ioannisantoniadis/claude-skills` marketplace:
 
 ## Current status
 
-- **2026-10-04:** SPEC v0.1 drafted. Name, title, license (MIT) and standalone status decided.
+- **2026-10-04:** SPEC v0.1 drafted. Name, title, license (MIT), package (`data_lab`, local only) and
+  standalone status decided.
 - **Next, Phase 0:**
   - positioning search;
   - `skeptical-review` of the thesis;
   - scaffold;
-  - owner decision D2 (package name).

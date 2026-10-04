@@ -575,7 +575,6 @@ Each phase ends with a report and a stop. Nothing passes a gate (⛳) without th
   - `scripts/technique_data.py`;
   - test stubs for §8;
   - CI: lint, tests, the render, and the word-count check.
-- Owner decision D2 (package name).
 - ⛳ **Gate 0.**
 
 ### Phase 1: testbeds and the signature figure
@@ -614,7 +613,7 @@ Record actual durations in `ROADMAP.md`.
 README.md  CLAUDE.md  SPEC.md  DECISIONS.md  CONVENTIONS.md  ROADMAP.md  COVERAGE.md
 research-log.md
 docs/                     Quarto book; images/ pre-generated; no code execution at render
-src/<package>/ (D2; recommended data_lab)            testbeds T1–T5, transforms, selection methods (NumPy, SciPy, scikit-learn)
+src/data_lab/            testbeds T1–T5, transforms, selection methods (NumPy, SciPy, scikit-learn)
 tests/                    claim tests (§8)
 scripts/figures/          fig_<slug>.py, one per figure; _theme.py with save_figure
 scripts/technique_data.py records → data cards and the decision-guide table
@@ -627,6 +626,9 @@ scripts/word_count.py     enforces the size cap
 - uv with a lockfile; Python ≥ 3.11;
 - ruff; pytest with `pytest-timeout`;
 - Quarto; GitHub Actions.
+
+**Packaging:** `data_lab` is a local package installed by `uv sync`. It is never published to
+PyPI or any other index.
 
 **Core dependencies:**
 

@@ -3,17 +3,6 @@
 Decisions reserved for the owner (marked ⚑ in `SPEC.md`). Move a decision to **Closed** with
 the date and choice when made. Agents read this file before starting work.
 
-## Open: needed in Phase 0
-
-### D2. Package name ⚑
-
-`datalab` is taken on PyPI (checked 2026-10-04). It would also clash with that package for
-any reader who has it installed.
-
-- **Recommended:** distribution `data-lab`, which was free on PyPI on 2026-10-04, imported as
-  `data_lab`. It matches the repo name.
-- **Alternative:** `datalab4ml`, also free on that date.
-
 ## Open: needed by Phase 2
 
 ### D4. External reviewer ⚑
@@ -41,6 +30,16 @@ Recruiting during Phase 1 keeps Phase 2 from waiting.
 - **Open point:** given the broader scope, the subtitle could drop "Training" (*What the
   Model Sees: Data from First Principles*). Confirm before the title is set anywhere
   public.
+
+### D2. Package name (2026-10-04)
+
+**`data_lab`** (distribution name `data-lab`), chosen by the agent at the owner's request.
+
+**The package is never published to PyPI.** Like the sibling labs' packages (`rl4llm`,
+`optimlab`), it exists only inside the repository: `uv sync` installs it into the local
+virtual environment so figure scripts and tests can import it. The name only has to avoid
+clashing with installed packages. That is why `datalab`, an existing PyPI project, was
+avoided.
 
 ### D3. License (2026-10-04)
 
