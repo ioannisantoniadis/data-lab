@@ -1,0 +1,33 @@
+# Choosing Data {#sec-choosing-data}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Deduplication (text testbed) (D)
+- Easy/hard pruning crossover (teacher-student, multi-seed) (D)
+- Difficulty scores (S)
+- RHO-LOSS (S)
+- Data mixtures (S)
+- Large-scale filtering (S/M)
+- Active learning (uncertainty-sampling demonstration) (D)
+- Model collapse (resampling from own fit on the Zipf testbed) (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Why Power Laws: The Long Tail](13-why-power-laws.qmd#sec-long-tail): the neighboring chapter.
+- [A Data Decision Guide](15-decision-guide.qmd#sec-decision-guide): the neighboring chapter.

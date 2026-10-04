@@ -1,0 +1,29 @@
+# Encoding and Features {#sec-encoding}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- One-hot / ordinal / hashing (S)
+- Target-encoding leakage and cross-fitting (D)
+- Discretization and splines (S)
+- TF-IDF (S)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Changing the Shape](06-changing-the-shape.qmd#sec-shape): the neighboring chapter.
+- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): the neighboring chapter.

@@ -1,0 +1,33 @@
+name: Render docs
+
+# Render only. There is deliberately no GitHub Pages deploy job: a Pages site on this account is
+# public, and publication waits for DECISIONS D5. When D5 is closed, add the upload-pages-artifact
+# and deploy-pages steps used by rl-for-llms/.github/workflows/docs.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render (any warning fails the build)
+        shell: bash  # explicit shell turns on pipefail, so a failed render is not masked by tee
+        run: |
+          quarto render docs 2>&1 | tee render.log
+          if grep -q "WARN" render.log; then
+            echo "Quarto emitted warnings (unresolved cross-references or citations?)"
+            exit 1
+          fi

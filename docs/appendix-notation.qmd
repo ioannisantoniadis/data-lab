@@ -1,0 +1,92 @@
+# Notation and Conventions {#sec-notation}
+
+Every chapter uses the symbols on this page rather than defining its own. When a chapter needs a
+new symbol, it is added here in the same change. If two chapters ever use one letter for two
+things, that is a bug in the book.
+
+This book shares conventions with its siblings where the topics overlap:
+[loss-functions-lab](https://ioannisantoniadis.github.io/loss-functions-lab/appendix-notation.html)
+for losses, risks and likelihoods, and
+[rl-for-llms](https://ioannisantoniadis.github.io/rl-for-llms/appendix-notation.html) for the
+sampling distribution $q$ and the weight $w$. The section on resolved conflicts below lists every
+place where this book departs from them, and why.
+
+## Data and distributions
+
+| Symbol | Meaning |
+|---|---|
+| $x \in \mathcal{X}$ | an input (feature vector); $x_j$ its $j$-th feature |
+| $y \in \mathcal{Y}$ | a target: a class, a real value, a token |
+| $d$ | the input dimension |
+| $n$ | the number of training examples (the sample size) |
+| $D = \{(x_i, y_i)\}_{i=1}^n$ | a dataset; $D_{\text{train}}$ and $D_{\text{test}}$ when both appear |
+| $X$ | the $n \times d$ design matrix |
+| $p$ | the **target distribution**: the one the model will face. $p(x, y)$, $p(x)$, $p(y \mid x)$ |
+| $q$ | the **training (sampling) distribution**: the one examples are drawn from. Same arguments as $p$ |
+| $w$ | a **per-example weight**; under covariate shift, $w(x) = p(x)/q(x)$, the density ratio |
+| $p(y)$, $q(y)$ | class priors under the target and training distributions |
+
+## Learning
+
+| Symbol | Meaning |
+|---|---|
+| $\theta$ | model parameters |
+| $f_\theta$, $\hat f$ | a model; a fitted model |
+| $\ell(y, \hat y)$ | the per-example loss |
+| $R(\theta) = \mathbb{E}_{(x,y)\sim p}[\ell]$ | the risk under the **target** distribution |
+| $\hat R(\theta)$ | the empirical risk on a sample |
+| $R^\star$ | the Bayes risk: the lowest risk any predictor can reach (the floor of a learning curve) |
+| $E_n$ | the expected test error after $n$ training examples: the **learning curve** |
+| $\beta$ | the exponent of a power-law learning curve, $E_n \propto n^{-\beta}$ |
+
+## The long-tail testbed (T2)
+
+| Symbol | Meaning |
+|---|---|
+| $p_i$ | the probability of feature $i$ under the target distribution. Hutter (2021) writes $\theta_i$ |
+| $\alpha$ | the Zipf exponent: $p_i \propto i^{-(\alpha+1)}$, as in Hutter (2021). Dohmatob et al. (2024) write $p_i \propto i^{-\beta}$, so their $\beta$ is this book's $\alpha + 1$ |
+| $K$ | the support size, when the feature set is truncated for computation |
+
+## Transforms
+
+| Symbol | Meaning |
+|---|---|
+| $\lambda$ | the Box-Cox / Yeo-Johnson power parameter |
+| $\sigma_\varepsilon$ | the noise standard deviation (for example of $\log y$ under log-normal noise) |
+| $F_j$ | the cumulative distribution function of feature $j$ |
+| $\Phi$ | the standard normal cumulative distribution function |
+
+## Probability and information
+
+| Symbol | Meaning |
+|---|---|
+| $\mathbb{E}$, $\mathrm{Var}$ | expectation and variance; the distribution is written as a subscript whenever it could be either $p$ or $q$ |
+| $\sigma(z) = 1/(1+e^{-z})$ | the logistic sigmoid; bare $\sigma$ is never a standard deviation in this book |
+| $H$ | entropy; for the Markov text testbed (T4), $H$ is the entropy rate in nats per token |
+| $\mathbb{1}[\cdot]$ | the indicator function |
+
+All logarithms are natural.
+
+## Resolved conflicts {#sec-notation-conflicts}
+
+- **Class priors are $p(y)$ and $q(y)$, not $\pi_y$.** The sibling books reserve $\pi$ for
+  policies. The lens of this book also makes the prior-shift correction read as what it is: a
+  change from $q$ to $p$. SPEC v0.1 §8 claim 10 wrote $\pi_y$; that claim is restated in this
+  notation.
+- **Hutter's $\theta_i$ is $p_i$ here.** $\theta$ means model parameters in every sibling book,
+  and in T2 the feature distribution *is* the target distribution $p$, which makes the
+  comparison of $q$ with $p$ direct (as in Dohmatob et al. 2024, who also write $p_i$ and
+  $q_i$).
+- **$\sigma$ is the sigmoid, as in the siblings**, so noise scale is $\sigma_\varepsilon$.
+- **$\beta$ is a learning-curve exponent here.** In rl-for-llms, $\beta$ is the KL strength;
+  the two books never need both.
+
+## Recurring visual devices
+
+**Data cards** (`callout-tip`): every technique, generated from `scripts/technique_data.py`,
+with the same eight fields in the same order: changes, assumption, what it does to the learned
+function, which models care, fit on, failure modes, alternatives, checked by. The
+[decision guide](chapters/15-decision-guide.qmd#sec-decision-guide) is assembled from them.
+
+**Lever colors**, in every figure: representation blue, sampling distribution $q$ orange,
+weights $w$ aqua, labels violet. Exact ground truth is drawn in black.

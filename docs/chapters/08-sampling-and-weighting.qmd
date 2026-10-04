@@ -1,0 +1,30 @@
+# Sampling and Weighting {#sec-sampling}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Resampling vs. reweighting vs. threshold, and their effect on calibrated probabilities (D)
+- Prior-shift correction (EM, Saerens et al.) (D)
+- SMOTE (with a failure case at D) (S)
+- Importance weighting under known covariate shift, including its variance (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Encoding and Features](07-encoding-and-features.qmd#sec-encoding): the neighboring chapter.
+- [Augmentation](09-augmentation.qmd#sec-augmentation): the neighboring chapter.
+- [rl-for-llms, Policy Gradients](https://ioannisantoniadis.github.io/rl-for-llms/chapters/02-policy-gradients.html): owns the $(q, w)$ weighted-likelihood view this chapter applies to data.

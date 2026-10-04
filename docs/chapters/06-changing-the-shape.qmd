@@ -1,0 +1,35 @@
+# Changing the Shape {#sec-shape}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Log transform (D)
+- Box-Cox, including the lambda MLE (D)
+- Yeo-Johnson (S)
+- Quantile transform and distance distortion (D)
+- Retransformation bias and smearing (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+The draft data card below is generated from `scripts/technique_data.py`; it checks the include pipeline.
+
+{{< include ../includes/cards/log-target.md >}}
+
+## Connections
+
+- [Affine Scaling](05-affine-scaling.qmd#sec-affine): the neighboring chapter.
+- [Encoding and Features](07-encoding-and-features.qmd#sec-encoding): the neighboring chapter.
+- [loss-functions-lab, Gaussian squared error](https://ioannisantoniadis.github.io/loss-functions-lab/chapters/04-gaussian-squared-error.html): owns why MSE estimates a conditional mean.

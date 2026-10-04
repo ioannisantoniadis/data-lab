@@ -1,0 +1,28 @@
+# Data Types and Their Structure {#sec-data-types}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Structure and plausible invariances of each data type (S)
+- Spectrograms as a representation (synthetic audio) (D)
+- Temporal leakage (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Labels](02-labels.qmd#sec-labels): the neighboring chapter.
+- [Cleaning: Missing Values, Duplicates, Outliers, Leakage](04-cleaning.qmd#sec-cleaning): the neighboring chapter.

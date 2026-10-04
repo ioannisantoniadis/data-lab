@@ -97,3 +97,94 @@ Content beyond the recorded depth must be read before it is used in the book.
   test it, and report if it fails.
 - **SPEC §8 claim 4, log-normal retransformation factor exp(σ²/2):** standard log-normal
   algebra. It is to be tested, and checked against Duan 1983 when that paper is read.
+
+## 2026-10-04: Phase 0
+
+### Positioning search (SPEC §4)
+
+Question: does any existing book or course already make all three of the book's candidate
+claims? (1) Every technique placed on one lens and tested against exact ground truth.
+(2) Classical preprocessing and modern data selection and scaling laws in one argument.
+(3) The long-tail account of data requirements made computable.
+
+| Work | URL | Accessed | Depth | What it covers | Claims it makes |
+|---|---|---|---|---|---|
+| Kuhn & Johnson 2019, *Feature Engineering and Selection* (CRC; Crossref 10.1201/9781315108230) | https://feat.engineering/ (redirect from bookdown.org/max/FES) | 2026-10-04 | table of contents + preface | Encoding categorical predictors, engineering numeric predictors, interactions, missing data, feature selection | None of 1–3: no lens, no scaling laws or selection, no ground-truth testing visible |
+| Zheng & Casari, *Feature Engineering for Machine Learning* (O'Reilly; year not verified: Crossref and Open Library lookups failed) | https://oreilly.com/library/view/~/9781491953235 | 2026-10-04 | table of contents via search snippet | Numeric features incl. log and power transforms, text, categorical, images | None of 1–3 |
+| MIT IAP *Introduction to Data-Centric AI* (2023, 2024) | https://dcai.csail.mit.edu/ | 2026-10-04 | lecture list and stated approach | Label errors / confident learning, imbalance, outliers, shift, curation, LLM data curation, augmentation (2023), growing/compressing datasets (2023) | Partial 2 (curation alongside classical issues) but "rather than mathematical details"; no transforms, no scaling laws, no lens, no exact ground truth |
+| Berkeley CS 294-288 *Data-Centric LLMs* (Fall 2025, Sewon Min) | https://www.sewonmin.com/courses/cs294_288_fa25/ | 2026-10-04 | full schedule | Pretraining curation, synthetic data, scaling laws, post-training data, model collapse | Partial 2 (LLM side only); seminar format; no classical preprocessing, no Hutter/long-tail theory, no testbeds |
+| Hardt & Recht, *Patterns, Predictions, and Actions*, ch. 8 *Datasets* | https://mlstory.org/data.html | 2026-10-04 | section headings | Benchmarks, dataset history, test-set reuse, harms, documentation | None of 1–3 |
+| Christensen et al. 2024, *Data-Centric Machine Learning with Python* (Packt) | packtpub.com product page | 2026-10-04 | unreachable (HTTP 403); title and blurb only | Data-centric practice | Not assessable; listed as unverified |
+| Sarkis 2023, *Training Data for Machine Learning* (O'Reilly) | https://www.oreilly.com/library/view/-/9781492094517 | 2026-10-04 | publisher description only | Annotation, schemas, data operations | Not 1–3 by its description (practice and tooling) |
+| Zha et al. 2023, *Data-centric AI: A Survey* (arXiv 2303.10158) | https://arxiv.org/abs/2303.10158 | 2026-10-04 | abstract | Organizes by lifecycle stage (training data development, inference data, maintenance) | Not a lens of the §2 kind; no ground truth |
+| Albalak et al. 2024 survey; Viering & Loog 2021 review | (Appendix A) | 2026-10-04 | abstract (logged above) | Data selection for LMs; learning curves | Each covers one part of Part IV |
+| Hutter 2021; Dohmatob et al. 2024 | (below) | 2026-10-04 | passage | The long-tail account, computed exactly, including q ≠ p | Claim 3 at research level |
+
+**Result:** no single work makes all three claims. Claims 1 and 2 survive as distinctive for a
+book. **Claim 3 does not survive as worded:** Hutter (2021) already makes the long-tail account
+computable, and Dohmatob et al. (2024) extend it to a training distribution q ≠ p. The book's
+contribution there is pedagogical: an exact reproduction a practitioner can run, connected to the
+data levers. Suggested rewording in `review.md`, issue 3. Not found: a search for a 2025–2026
+book combining preprocessing with scaling laws (two extended web searches) returned only papers.
+Bach, *Learning Theory from First Principles* (MIT Press 2024) shares the subtitle phrase but is
+a learning-theory text; it was not examined further.
+
+### Sources read in Phase 0
+
+| Source | URL | Depth | Verified | Notes / discrepancies |
+|---|---|---|---|---|
+| Hutter 2021, arXiv 2102.04074 | https://arxiv.org/pdf/2102.04074 | passage (full text, §§1, 3) | Eq. 2; Zipf θ_i ∝ i^−(α+1) gives β = α/(1+α), with coefficient c_α = α^(1/(1+α)) Γ(α/(1+α))/(α+1), c_1 = √π/2 ≈ 0.886; finite support gives exponential decay; skewed non-Zipf (e.g. exponential) distributions give "uninteresting" β = 1; error "dominated by samples i′ for which θ_i′ ≈ 1/n"; "we have no indication that our findings transfer" | c_α is derived with the unnormalized θ_i = α·i^−(α+1); tests must match the normalization |
+| Dohmatob, Feng, Yang, Charton 2024, *A Tale of Tails*, arXiv 2402.07043 | https://arxiv.org/pdf/2402.07043v2 | passage (§§1–3, Appendix A opening) | Hutter LLM trained on q, tested on p (eq. 9); Thm 2.1: tail cut at k gives E_test ≍ T^−(β−1)/β + k^−(β−1); eq. 6: finite sampling cuts at k ≍ T₀^(1/β); Thm 3.2: mixing clean data gives "grokking"; §3.1: tail data "too deep" is worthless; tail narrowing via temperature | **Not in SPEC.** Their β (p_i ∝ i^−β) is α + 1 in Hutter's notation. Prior art for claim 20 and chapter 13 |
+| Sharma & Kaplan 2020, arXiv 2004.10802 | arXiv API | abstract | Scaling exponent ≈ 4/d from regression on a data manifold of intrinsic dimension d (in parameters N) | Counter-account to "data needs are set by the tail" |
+| Ayed & Hayou 2023, arXiv 2302.06960 | arXiv API | abstract | Random pruning beats most methods when ≤ 30% is kept; no-free-lunch for score-based pruning | Counter-evidence for selection claims |
+| Goyal, Maini, Lipton, Raghunathan 2024, arXiv 2404.07177 | arXiv API | abstract | Data curation "cannot be agnostic of the total compute"; repeated high-quality data loses utility | Counter-evidence; chapter 14 |
+| Cabannes, Dohmatob, Bietti 2023, arXiv 2310.02984 | arXiv API | abstract | Scaling laws for associative memories in sample and parameter size | Chapter 13 context |
+| Gerstgrasser et al. 2024, arXiv 2404.01413 | arXiv API | abstract | Replacing real data with synthetic tends to collapse; accumulating avoids it | Claim 20 must say it is the replace regime |
+| Shumailov et al. 2024, *Nature* (10.1038/s41586-024-07566-y) and Author Correction 2025 (10.1038/s41586-025-08905-3) | Crossref | bib | Published version of arXiv 2305.17493; a correction exists | Cite both; read the correction before use |
+| Chawla et al. 2002, SMOTE, JAIR (10.1613/jair.953) | Crossref | bib | **Journal year 2002** (SPEC Appendix A asked to confirm) | — |
+| Settles 2012, *Active Learning* (Synthesis Lectures; 10.1007/978-3-031-01560-1) | Crossref | bib | Fills SPEC Appendix A's "active-learning reference" | Content to be read in Phase 3 |
+| Kuhn & Johnson 2019 (10.1201/9781315108230) | Crossref + feat.engineering | table of contents | Fills "a feature-engineering reference" | — |
+| Sorscher et al. 2022; Bahri et al. 2021; Michaud et al. 2023 | arXiv API | abstract (re-read for the review) | Quoted in `review.md` | — |
+| PyPI classifiers page | https://pypi.org/classifiers/ | page | "PyPI will always reject packages with classifiers beginning with `Private ::`" | Used in pyproject.toml |
+
+Still open from SPEC Appendix A: "the best current evidence on synthetic data in training". There
+are candidates (Shumailov 2024 and its correction, Dohmatob 2024, Gerstgrasser 2024), but they
+have not been read beyond the abstract and Dohmatob's §§1–3. To be done in Phase 3.
+
+### Bibliography
+
+`docs/references.bib` (49 entries) was generated on 2026-10-04 from the arXiv API (titles,
+authors, years, ids) and the Crossref REST API (DOI entries). Two Crossref titles had markup
+stripped (mice; Saerens et al.). Presence in the bib means **bib** depth only; content depth is
+as logged above.
+
+### Sibling repos (read 2026-10-04, none modified)
+
+| Repo | Commit | What was read | Finding |
+|---|---|---|---|
+| rl-for-llms | 1c4ae17 | CONVENTIONS, CLAUDE, notation appendix, `_theme.py`, `method_data.py`, CI, `_quarto.yml`, a chapter opening | Process reference; palette, theme, records format adopted |
+| loss-functions-lab | 82b8b97 | CONVENTIONS, notation appendix, chapter list | ℓ / R / R̂ / 𝓛 conventions adopted; σ is the sigmoid |
+| optimization-lab | 816e43f | CLAUDE, chapter list, Foundations conditioning section | **No CONVENTIONS.md, no notation appendix.** Conditioning is shown (GD on diag(1, 100)), but **feature scaling is never connected to it** |
+| transformer-atlas | — | MAP.md, grep for tokenizer terms | **No tokenization coverage**; the SPEC pointer has no target |
+| objectives-book | — | SPEC §§9–11, §21.1–21.2 | Portability rules adopted (D6) |
+| modern-ai-systems-and-methods, math-conceptual-map | — | chapter lists; grep | Leakage and drift in ch. 17 (MLOps), ch. 14; prerequisites in ch. 22 (probability) etc. |
+
+### Discrepancies with the spec
+
+- **§2.1 long-tail sentences** → redundancy vs. tail mass are two mechanisms; the oracle
+  coverage selector is still a power law (Hutter §3; scratch computation in `review.md`).
+  Resolution: reworded in SPEC v0.2 §2.1 (D7).
+- **§4 claim 3** → already done at research level (Hutter 2021; Dohmatob et al. 2024).
+  Resolution: reworded in SPEC v0.2 (D7).
+- **§3/§4 "tokenizer internals: link transformer-atlas"** → transformer-atlas has none.
+  Resolution: SPEC v0.2 §3, §4 (primary sources in chapters 3 and 7).
+- **§4 "chapter 5 links optimization-lab's account of why feature scaling changes gradient
+  descent"** → that account covers conditioning only, not feature scaling. Resolution: SPEC v0.2
+  §4, §6, claim 21.
+- **§8 claim 10 writes π_y** → conflicts with SPEC §11 ("π for policies only"). Resolution:
+  restated as p(y), q(y) in the notation appendix and test stub.
+- **§1 sibling sizes are raw `wc -w`, while the cap is on "prose"** → prose is 10–40% lower.
+  Resolution: owner chose prose (D7).
+- **§8 "Phase 2 makes them pass"** vs. §15 (Parts III–IV in Phase 3) → stubs skip with their
+  chapter's phase.
+- **SPEC Appendix A "confirm the journal year" (SMOTE)** → 2002 (Crossref).

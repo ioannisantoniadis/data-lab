@@ -1,0 +1,16 @@
+# Welcome {.unnumbered}
+
+::: {.callout-warning title="Work in progress"}
+This book is in Phase 0 (foundation). Every chapter is a stub; nothing here is yet a claim.
+:::
+
+A model learns the distribution it is trained on, through the representation it is given. This
+book is about that sentence. It asks where data for learning comes from, how it is transformed,
+how the training distribution is shaped, and how much of it (and which of it) a model needs.
+
+Every technique gets a *data card* that says which of four things it changes: the
+representation, the sampling distribution, the per-example weights, or the labels. Every
+checkable statement is a test in the repository, and every figure is computed from synthetic
+data whose ground truth is known exactly.
+
+Start at [the map](chapters/00-the-map.qmd#sec-map).

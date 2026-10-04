@@ -1,0 +1,20 @@
+# A Data Decision Guide {#sec-decision-guide}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 4 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Every data card in the generated table (D)
+- Two worked examples (one tabular, one image or audio) (D)
+
+## Every data card
+
+The table is generated from `scripts/technique_data.py`.
+
+{{< include ../includes/decision-guide.md >}}
+
+## Connections
+
+- [Choosing Data](14-choosing-data.qmd#sec-choosing-data): the neighboring chapter.

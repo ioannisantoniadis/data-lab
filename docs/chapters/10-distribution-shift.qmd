@@ -1,0 +1,27 @@
+# Distribution Shift {#sec-shift}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- The shift taxonomy (S)
+- Shift detection (two-sample test on the testbed) (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Augmentation](09-augmentation.qmd#sec-augmentation): the neighboring chapter.
+- [Learning Curves](11-learning-curves.qmd#sec-learning-curves): the neighboring chapter.

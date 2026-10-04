@@ -1,0 +1,28 @@
+# Learning Curves {#sec-learning-curves}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Learning-curve estimation and extrapolation with uncertainty (D)
+- The Bayes floor (D)
+- Dependence on noise and target complexity (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Distribution Shift](10-distribution-shift.qmd#sec-shift): the neighboring chapter.
+- [Scaling Laws](12-scaling-laws.qmd#sec-scaling-laws): the neighboring chapter.

@@ -20,6 +20,28 @@ Recruiting during Phase 1 keeps Phase 2 from waiting.
 
 ## Closed
 
+### D7. Gate 0 decisions (2026-10-04)
+
+The owner accepted the Phase 0 recommendations (`ROADMAP.md`, `review.md`), applied in SPEC v0.2:
+
+1. **Long-tail thesis, reworded (§2.1).** Scoped to memorization-like settings with long-tailed
+   inputs; noise, target complexity and input dimension are named as the other factors; the
+   manifold-dimension and variance/resolution-limited accounts are presented alongside.
+   Redundancy explains uniform sampling's slower exponent; the tail mass explains the power
+   law; an oracle selector steepens it but does not escape it.
+2. **Chapter 13 keeps the long tail as the signature,** presented as an exact reproduction
+   that cites Hutter (2021) and Dohmatob et al. (2024), with a non-oracle selector beside the
+   oracle one.
+3. **Evaluation-only cards.** A card's *Changes* field may be "evaluation only" (splits,
+   leakage control, shift detection, learning-curve estimation).
+4. **Word cap counts prose,** as counted by `scripts/word_count.py`; the cap stays 35,000.
+5. **SPEC edits applied by the agent** (v0.2), including the sibling-coverage corrections
+   (tokenization; feature scaling and conditioning, with new claim 21) and the π → p/q
+   notation for class priors.
+
+Gate 0 passed; Phase 1 started 2026-10-04.
+
+
 ### D1. Repository name and book title (2026-10-04)
 
 - **Repository:** `data-lab`, renamed from `training-data-lab`. The scope is data for
@@ -27,9 +49,9 @@ Recruiting during Phase 1 keeps Phase 2 from waiting.
   training sets. It matches the `-lab` siblings.
 - **Title:** *What the Model Sees: Training Data from First Principles*, approved by the
   owner.
-- **Open point:** given the broader scope, the subtitle could drop "Training" (*What the
-  Model Sees: Data from First Principles*). Confirm before the title is set anywhere
-  public.
+- **Subtitle (closed at Gate 0, 2026-10-04):** keep "Training Data". The lens is about
+  training data; techniques that act only on evaluation get cards marked *evaluation only*
+  (D7).
 
 ### D2. Package name (2026-10-04)
 

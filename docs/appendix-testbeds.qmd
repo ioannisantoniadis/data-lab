@@ -1,0 +1,17 @@
+# The Testbeds {#sec-testbeds}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 1 (SPEC §15), when the testbeds are implemented and tested.
+:::
+
+Every claim in this book is measured against a known truth. This appendix will describe each
+testbed in `src/data_lab/testbeds/`: what it computes exactly, its variants, its parameters and
+how they were chosen, and what it cannot show.
+
+| Testbed | Ground truth available exactly |
+|---|---|
+| T1, synthetic tabular generator | Bayes predictor and risk; conditional mean, median, geometric mean; density ratio |
+| T2, Zipf feature stream [@hutter2021learning] | Expected error of the memorizing learner, by exact summation |
+| T3, teacher-student perceptron [@sorscher2022beyond] | Each example's margin under the teacher |
+| T4, Markov text source | Entropy rate; exact duplicate counts |
+| T5, synthetic signals and bundled digits | Generating frequencies; invariance under a defined transform family |

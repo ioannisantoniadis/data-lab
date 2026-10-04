@@ -1,0 +1,28 @@
+# Labels {#sec-labels}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Class-conditional label noise and its effect on the learned classifier (D)
+- Label-error detection (S)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): the neighboring chapter.
+- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): the neighboring chapter.
+- [loss-functions-lab, Designing a New Loss](https://ioannisantoniadis.github.io/loss-functions-lab/chapters/18-designing-a-new-loss.html): owns loss-based remedies for label noise.

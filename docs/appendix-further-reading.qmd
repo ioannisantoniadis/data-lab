@@ -1,0 +1,10 @@
+# Further Reading {#sec-further-reading}
+
+::: {.callout-warning title="Stub"}
+Written in Phase 4. Entries are added only after the source has been read and logged in
+`research-log.md`.
+:::
+
+Books and courses found in the Phase 0 positioning search, with what each covers, are logged in
+the repository's `research-log.md`. Two references fill open items of the specification:
+@kuhn2019feature for feature engineering, and @settles2012active for active learning.

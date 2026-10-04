@@ -1,0 +1,28 @@
+# Scaling Laws {#sec-scaling-laws}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Power-law scaling (with evidence labels) (S)
+- Compute-optimal allocation (S)
+- Repeated-data returns (S)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Learning Curves](11-learning-curves.qmd#sec-learning-curves): the neighboring chapter.
+- [Why Power Laws: The Long Tail](13-why-power-laws.qmd#sec-long-tail): the neighboring chapter.

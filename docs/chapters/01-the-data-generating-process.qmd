@@ -1,0 +1,29 @@
+# The Data-Generating Process {#sec-dgp}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Target vs. training distribution (D)
+- Selection bias from non-random sampling (tabular testbed) (D)
+- Sampling designs (S)
+- Dataset documentation (S)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [The Map](00-the-map.qmd#sec-map): the neighboring chapter.
+- [Labels](02-labels.qmd#sec-labels): the neighboring chapter.

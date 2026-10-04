@@ -1,0 +1,9 @@
+# The Map {#sec-map .unnumbered}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 4 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Connections
+
+- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): the neighboring chapter.

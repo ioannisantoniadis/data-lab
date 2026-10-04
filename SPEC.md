@@ -1,6 +1,6 @@
 # SPEC: data for learning, from first principles
 
-**Status:** draft v0.1, 2026-10-04. Repo `data-lab`; title *What the Model Sees: Training
+**Status:** v0.2, 2026-10-04 (v0.1 revised at Gate 0: see `DECISIONS.md` D7 and `review.md`). Repo `data-lab`; title *What the Model Sees: Training
 Data from First Principles* (see [`DECISIONS.md`](DECISIONS.md)); license MIT. This file is the implementation contract for the agent that
 builds the book. Read it end to end before writing anything.
 
@@ -66,7 +66,10 @@ rules of thumb:
 | `loss-functions-lab` | ≈ 29,000 |
 | `rl-for-llms` | ≈ 37,000 |
 
-Counts are words in `docs/**/*.qmd`, measured 2026-10-04.
+Counts are raw words (`wc -w`) in `docs/**/*.qmd`, measured 2026-10-04. Counted as prose by
+`scripts/word_count.py` (no code, math or markup), the same books are about 9,100, 24,800,
+25,600 and 33,100 words. **The cap and target below are prose words, as counted by
+`scripts/word_count.py`** (owner decision at Gate 0, D7).
 
 - **Target:** 22,000–30,000 words of prose.
 - **Hard cap:** 35,000 words.
@@ -78,7 +81,7 @@ Counts are words in `docs/**/*.qmd`, measured 2026-10-04.
 ### 2.1 Thesis
 
 > A model learns the distribution it is trained on, through the representation it is given.
-> Every data technique changes one of four things:
+> Every technique that acts on training data changes one or more of four things:
 >
 > - the **representation**: how inputs and targets are encoded and transformed;
 > - the **sampling distribution** q: which examples are drawn, compared with the target
@@ -87,14 +90,32 @@ Counts are words in `docs/**/*.qmd`, measured 2026-10-04.
 > - the **labels**: what each example says.
 >
 > Which of the four a technique changes determines what it can fix and what it can break.
-> How much data a problem needs is set by how much probability mass sits in rare but
-> necessary cases, the long tail. Uniform sampling spends most of its budget on cases already
-> learned, which is one explanation of power-law returns. Selection that targets what is not
-> yet learned can do better.
+> Resampling with q and reweighting with w target the same population objective (the
+> effective distribution, proportional to q·w); the split between them sets the finite-sample
+> variance. Techniques that act only on evaluation (splits, leakage control, shift detection,
+> learning-curve estimation) change what we measure, not what the model learns, and their
+> cards say so.
+>
+> How much data a problem needs depends on noise, the complexity of the target, the input
+> dimension, and the probability mass in rare but necessary cases. Where learning is
+> memorization-like and inputs are long-tailed, the last of these dominates: error is the mass
+> of what has not yet been covered. Uniform sampling reaches that mass slowly, because most
+> draws repeat what is already covered. A selector that targets the uncovered steepens the
+> power law, but only with an oracle for what is covered; real selection methods approximate
+> that oracle, with mixed results at scale. Other accounts (data-manifold dimension;
+> variance- vs. resolution-limited regimes) explain power laws without a long tail, and the
+> book presents them alongside.
 
 This deliberately mirrors `rl-for-llms` Thesis 2: every method is a sampling distribution q
 plus per-sample weights w. Here the same pair describes data engineering. The book states
-this connection and links it; it does not re-derive the RL side.
+this connection and links it; it does not re-derive the RL side. The older lineage
+(importance weighting under covariate shift; the dataset-shift literature) gets a lineage
+callout, sourced in Phase 3.
+
+The v0.1 wording ("is set by" the long tail; uniform sampling's redundancy as "one explanation
+of power-law returns"; selection that can "beat that law") was revised at Gate 0 after
+`review.md`: redundancy explains the slower exponent, the tail mass explains the power law,
+and an oracle selector is still a power law.
 
 ### 2.2 The lens: the data card
 
@@ -102,7 +123,7 @@ Every technique gets a **data card**, generated from a record in `scripts/techni
 
 | Field | Question | Example (log-transforming a skewed target) |
 |---|---|---|
-| Changes | Representation / q / w / labels | Representation (of y) |
+| Changes | Representation / q / w / labels, or *evaluation only* | Representation (of y) |
 | Assumption | What must be true for it to help | y > 0, with multiplicative noise or right skew |
 | What it does to the learned function | In terms of the loss's minimizer | With MSE, the model learns E[log y ∣ x]: on the original scale, a geometric-mean-like prediction, not the mean |
 | Which models care | Model families whose results change | Linear and GLM-type models, neural nets; trees much less |
@@ -113,6 +134,10 @@ Every technique gets a **data card**, generated from a record in `scripts/techni
 
 The example row's claims are what the book must derive and test. Duan (1983) introduces the
 smearing estimate (Crossref-verified bibliographic data; content to be read in Phase 2).
+
+**Evaluation-only techniques** (splits, leakage control, shift detection, learning-curve
+estimation) get cards with *Changes: evaluation only*; the *Fit on* field carries the leakage
+lesson.
 
 **Falsifiability.** Where a technique does not fit the four-way split cleanly (for example,
 deduplication changes both q and the effective weights), the card says so. A lens that fits
@@ -140,7 +165,9 @@ everything by being vague is not the goal.
 
 - **Data engineering infrastructure** (pipelines, warehouses, streaming, data versioning
   tools). Link `modern-ai-systems-and-methods` (MLOps chapter).
-- **Architectures** (CNNs, transformers, tokenizer internals). Link `transformer-atlas`.
+- **Architectures** (CNNs, transformers). Link `transformer-atlas`. **Tokenizer internals**
+  are also out of scope; no sibling covers them (checked 2026-10-04), so chapters 3 and 7
+  point to primary sources.
 - **Loss derivations, including loss-based remedies for noise and imbalance.** Owned by
   `loss-functions-lab`; link it.
 - **Optimizer behavior.** Owned by `optimization-lab`, except where data scaling changes
@@ -158,9 +185,9 @@ everything by being vague is not the goal.
 | Repo | Relationship |
 |---|---|
 | `loss-functions-lab` | Owns noise model → loss derivations (MSE → mean, MAE → median) used in chapters 6 and 8; link, don't re-derive. Covers augmentation only inside contrastive objectives. |
-| `optimization-lab` | Owns conditioning; chapter 5 links its account of why feature scaling changes gradient descent. |
+| `optimization-lab` | Owns conditioning: its Foundations chapter shows gradient descent slowed by an ill-conditioned quadratic. It does not connect conditioning to feature scaling (checked 2026-10-04), so chapter 5 states and tests that bridge, then links for the consequence. It has no CONVENTIONS.md or notation appendix. |
 | `rl-for-llms` | Owns the (q, w) weighted-likelihood view and the toy-language testbed; chapter 8 links it. |
-| `transformer-atlas` | Owns architectures and tokenization internals. |
+| `transformer-atlas` | Owns architectures. Has no tokenization material (checked 2026-10-04). |
 | `modern-ai-systems-and-methods` | Mentions leakage, drift and active learning briefly; this book goes deeper. Link both ways. |
 | `math-conceptual-map` | Prerequisites. |
 | `objectives-book` | Standalone for now; may later become part of it (D6, closed). Keep its conventions where possible. Do not edit it from here. |
@@ -187,9 +214,14 @@ Phase 0 must verify:
 
 1. Every technique is placed on one lens (§2) and tested against exact ground truth.
 2. Classical preprocessing and modern data selection and scaling laws are in one argument.
-3. The long-tail account of data requirements is made computable.
+3. The long-tail account of data requirements is reproduced exactly, in a form a
+   practitioner can run, and connected to the data levers. (v0.1 said "made computable";
+   Hutter 2021 and Dohmatob et al. 2024 already did that at research level.)
 
 If an existing work already does all three, stop and report.
+
+**Phase 0 result (2026-10-04):** no work found does all three; claims 1 and 2 are distinctive;
+claim 3 was reworded as above. Details in `research-log.md`.
 
 ## 5. Architecture
 
@@ -284,7 +316,8 @@ before release.
 - affine scalers preserve shape (D);
 - which models are invariant to which transforms: trees under monotone transforms (D),
   distance-based models under scaling (D);
-- conditioning and gradient descent (M → optimization-lab);
+- feature scaling changes the conditioning of least squares (S, with a test); its consequence
+  for gradient descent (M → optimization-lab);
 - RobustScaler and outliers (D);
 - log transform (D);
 - Box-Cox (D, including the λ MLE);
@@ -351,7 +384,11 @@ from the source. A selector that never draws an already-seen feature reaches err
 roughly as n^−α, faster than uniform sampling's n^−α/(1+α). Phase 1 must derive this
 properly, state the assumptions (such as knowing which features are seen), test it, and say
 what it does and does not imply for real selection methods. If the derivation does not hold
-up, record that and revise chapter 13's argument.
+up, record that and revise chapter 13's argument. The selector is still a power law (a
+steeper one), not an escape from it, and it needs an oracle; Phase 1 also implements a
+non-oracle selector that estimates coverage from counts, so the oracle's share of the gain is
+visible. Prior art: Dohmatob et al. (2024) analyze Hutter's model trained on q ≠ p, including
+tail cutting and acquiring the missing tail; chapter 13 cites it and checks against it.
 
 **Datasets.** Synthetic, or bundled with scikit-learn. Any external dataset needs an owner
 decision (⚑ D5), a license check, and must not be needed by CI.
@@ -359,7 +396,8 @@ decision (⚑ D5), a license check, and must not be needed by CI.
 ## 8. Claims to test
 
 Each item is a test in `tests/`, named after the claim. Phase 0 turns this list into test
-stubs, and Phase 2 makes them pass. Add more as chapters need them.
+stubs. Each passes in the phase of its chapter: claims 14–16 in Phase 1, 1–9 and 21 in
+Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
 
 1. Standard, min-max, max-abs and robust scaling leave sample skewness and kurtosis unchanged
    (affine invariance).
@@ -380,7 +418,8 @@ stubs, and Phase 2 makes them pass. Add more as chapters need them.
 9. Fitting a scaler or imputer on train + test changes test metrics vs. fitting on train
    only, in the direction of optimism, on a constructed case.
 10. Training on resampled balanced data shifts the predicted probabilities. The prior-shift
-    correction p'(y ∣ x) ∝ p(y ∣ x) · π'_y / π_y restores calibration (T1).
+    correction p(y ∣ x) ∝ q(y ∣ x) · p(y) / q(y) restores calibration (T1). (v0.1 wrote the
+    priors as π_y, which conflicts with §11's "π for policies only".)
 11. EM prior estimation (Saerens et al.) recovers a known test prior on T1.
 12. Importance weighting with the true density ratio gives an unbiased risk estimate under
     covariate shift, with variance that grows as the shift grows (T1).
@@ -396,8 +435,13 @@ stubs, and Phase 2 makes them pass. Add more as chapters need them.
     train/test overlap.
 19. A learning curve fitted on small n extrapolates to within its stated interval at larger n
     on T1, or the chapter reports that it does not.
-20. Repeatedly refitting a model on samples from its own previous fit loses the tail of T2's
-    distribution (model collapse in miniature, multi-seed).
+20. (Replace regime; checked against the rates of Dohmatob et al. 2024, and contrasted with
+    accumulation, Gerstgrasser et al. 2024.) Repeatedly refitting a model on samples from its
+    own previous fit loses the tail of T2's distribution (model collapse in miniature,
+    multi-seed).
+21. Per-feature rescaling changes the condition number of the least-squares Hessian
+    (proportional to XᵀX), and standardization reduces it on a constructed T1 case (added at
+    Gate 0: the bridge `optimization-lab` does not cover).
 
 ## 9. Figures
 
@@ -422,7 +466,8 @@ stubs, and Phase 2 makes them pass. Add more as chapters need them.
 
 - **Panel A:** T2's exact learning curves for several α on log-log axes, with Monte Carlo
   points and the n^−α/(1+α) guide lines.
-- **Panel B:** uniform sampling vs. coverage-driven selection at equal budget.
+- **Panel B:** uniform sampling vs. coverage-driven selection at equal budget, oracle and
+  non-oracle, with the n^−α guide line.
 
 If this figure does not make the long-tail argument visibly, rethink chapter 13 before
 writing it.
@@ -736,7 +781,15 @@ whose specific passages were read.
   the transformer list and the stated caveats (outliers and RobustScaler; Box-Cox requires
   strictly positive data; the quantile transform distorts distances).
 
-**Still to find in Phase 0:**
+**Found in Phase 0** (bibliographic data verified; content depth in `research-log.md`):
+Dohmatob et al. 2024 (2402.07043); Cabannes et al. 2023 (2310.02984); Sharma & Kaplan 2020
+(2004.10802); Ayed & Hayou 2023 (2302.06960); Goyal et al. 2024 (2404.07177); Gerstgrasser
+et al. 2024 (2404.01413); Shumailov et al. 2024, *Nature* (doi:10.1038/s41586-024-07566-y),
+and its 2025 author correction; SMOTE is JAIR 2002 (doi:10.1613/jair.953); Settles 2012,
+*Active Learning* (doi:10.1007/978-3-031-01560-1); Kuhn & Johnson 2019, *Feature Engineering
+and Selection* (doi:10.1201/9781315108230).
+
+**Was to find in Phase 0:**
 
 - an active-learning reference (for example a survey);
 - a feature-engineering reference;

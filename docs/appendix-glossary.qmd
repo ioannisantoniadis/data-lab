@@ -1,0 +1,12 @@
+# Glossary {#sec-glossary}
+
+::: {.callout-warning title="Stub"}
+Filled as chapters are written. Each term links to the chapter that defines it.
+:::
+
+| Term | Meaning |
+|---|---|
+| Lever | One of the four things a data technique can change: representation, sampling distribution $q$, weights $w$, labels |
+| Data card | The fixed-field record every technique gets; see [Notation](appendix-notation.qmd#sec-notation) |
+| Target distribution $p$ | The distribution the model will face |
+| Training distribution $q$ | The distribution training examples are drawn from |

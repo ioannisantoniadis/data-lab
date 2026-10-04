@@ -1,0 +1,31 @@
+# Affine Scaling {#sec-affine}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Affine scalers preserve shape (D)
+- Trees invariant under monotone transforms (D)
+- Distance-based models change under scaling (D)
+- Feature scaling changes least-squares conditioning (S); its consequence for gradient descent (M, pointer to optimization-lab)
+- RobustScaler and outliers (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Cleaning: Missing Values, Duplicates, Outliers, Leakage](04-cleaning.qmd#sec-cleaning): the neighboring chapter.
+- [Changing the Shape](06-changing-the-shape.qmd#sec-shape): the neighboring chapter.
+- [optimization-lab, Foundations](https://ioannisantoniadis.github.io/optimization-lab/chapters/01-foundations.html): owns conditioning and why gradient descent zig-zags on an ill-conditioned quadratic.

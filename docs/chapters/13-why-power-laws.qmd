@@ -1,0 +1,29 @@
+# Why Power Laws: The Long Tail {#sec-long-tail}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- Hutter's model and its exponent (exact) (D)
+- Coverage-driven selection on the same model (SPEC §7) (D)
+- The quantization model (S)
+- Memorization and the long tail (S)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Scaling Laws](12-scaling-laws.qmd#sec-scaling-laws): the neighboring chapter.
+- [Choosing Data](14-choosing-data.qmd#sec-choosing-data): the neighboring chapter.

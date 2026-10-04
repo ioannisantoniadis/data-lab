@@ -1,0 +1,70 @@
+project:
+  type: book
+  output-dir: _site
+
+# No site-url, social-preview image or Pages deploy until DECISIONS D5 is closed: a GitHub Pages
+# site on this account is public. The social preview is a generated figure, added in Phase 1+.
+book:
+  title: "What the Model Sees"
+  subtitle: "Training Data from First Principles"
+  author: "Ioannis Antoniadis, with Claude (Anthropic)"
+  description: >-
+    Where data for learning comes from, how it is transformed, how the training distribution is
+    shaped, and how much of it (and which of it) a model needs, with every claim checked against
+    synthetic data whose ground truth is known exactly.
+  repo-url: "https://github.com/ioannisantoniadis/data-lab"
+  page-footer:
+    right: "Rendered with [Quarto](https://quarto.org)."
+  chapters:
+    - index.qmd
+    - chapters/00-the-map.qmd
+    - part: "I. Where data comes from"
+      chapters:
+        - chapters/01-the-data-generating-process.qmd
+        - chapters/02-labels.qmd
+        - chapters/03-data-types.qmd
+    - part: "II. Transforming data"
+      chapters:
+        - chapters/04-cleaning.qmd
+        - chapters/05-affine-scaling.qmd
+        - chapters/06-changing-the-shape.qmd
+        - chapters/07-encoding-and-features.qmd
+    - part: "III. Shaping the training distribution"
+      chapters:
+        - chapters/08-sampling-and-weighting.qmd
+        - chapters/09-augmentation.qmd
+        - chapters/10-distribution-shift.qmd
+    - part: "IV. How much data, and which"
+      chapters:
+        - chapters/11-learning-curves.qmd
+        - chapters/12-scaling-laws.qmd
+        - chapters/13-why-power-laws.qmd
+        - chapters/14-choosing-data.qmd
+    - part: "V. Synthesis"
+      chapters:
+        - chapters/15-decision-guide.qmd
+  appendices:
+    - appendix-notation.qmd
+    - appendix-testbeds.qmd
+    - appendix-glossary.qmd
+    - appendix-further-reading.qmd
+    - appendix-toy-limits.qmd
+  page-navigation: true
+
+format:
+  html:
+    theme:
+      - cosmo
+      - theme.scss
+    toc: true
+    number-sections: true
+    number-depth: 2
+    fig-align: center
+    smooth-scroll: true
+    grid:
+      sidebar-width: 260px
+      body-width: 850px
+      margin-width: 250px
+    link-external-newwindow: true
+
+bibliography: references.bib

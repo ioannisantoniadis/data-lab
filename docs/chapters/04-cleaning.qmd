@@ -1,0 +1,29 @@
+# Cleaning: Missing Values, Duplicates, Outliers, Leakage {#sec-cleaning}
+
+::: {.callout-warning title="Stub"}
+Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
+:::
+
+## Planned coverage {.unnumbered}
+
+- MCAR / MAR / MNAR (S)
+- Bias of mean imputation and complete-case analysis under each mechanism (D)
+- Duplicates inflating test scores (D)
+- Train-only fitting of preprocessing (leakage demonstration) (D)
+
+## The problem
+
+## Assumptions
+
+## Derivation or demonstration
+
+## What it does to the learned model
+
+## Failure modes
+
+## What the toy cannot show
+
+## Connections
+
+- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): the neighboring chapter.
+- [Affine Scaling](05-affine-scaling.qmd#sec-affine): the neighboring chapter.
