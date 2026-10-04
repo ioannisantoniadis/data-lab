@@ -1,7 +1,7 @@
 # Agent entry point
 
-You are building a short book, with code, on **training data from first principles**
-(working title; see `DECISIONS.md`). The project is in **Phase 0: foundation**. No chapters
+You are building *What the Model Sees: Training Data from First Principles*, a short book
+with code on data for learning (repo `data-lab`; see `DECISIONS.md`). The project is in **Phase 0: foundation**. No chapters
 or code exist yet.
 
 ## Read first, in this order
@@ -38,9 +38,9 @@ From the `ioannisantoniadis/claude-skills` marketplace:
 
 ## Current status
 
-- **2026-10-04:** SPEC v0.1 drafted.
+- **2026-10-04:** SPEC v0.1 drafted. Name, title, license (MIT) and standalone status decided.
 - **Next, Phase 0:**
   - positioning search;
   - `skeptical-review` of the thesis;
   - scaffold;
-  - owner decisions D1–D3.
+  - owner decision D2 (package name).

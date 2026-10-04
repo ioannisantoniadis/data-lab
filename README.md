@@ -1,6 +1,7 @@
-# training-data-lab (working name)
+# data-lab
 
-A short book, with code, on training data from first principles. It covers:
+*What the Model Sees: Training Data from First Principles*: a short book, with code, on
+data for learning, from first principles. It covers:
 
 - where data comes from;
 - how it is cleaned, scaled, transformed and encoded, and when each choice matters;
@@ -14,11 +15,12 @@ returns diminish. The book is a sibling of
 checked against synthetic data with a known ground truth.
 
 **Status:** specification only (SPEC v0.1, 2026-10-04). Private while the plan is settled.
+**License:** MIT.
 **Authors:** Ioannis Antoniadis, with Claude (Anthropic).
 
 | File | What it is |
 |---|---|
 | [`SPEC.md`](SPEC.md) | The implementation contract: thesis and lens, scope, architecture, coverage, testbeds, claims to test, figures, guardrails, acceptance and success criteria, plan |
-| [`DECISIONS.md`](DECISIONS.md) | Owner decisions: name and title options, package, license, reviewer, datasets and publication, relation to `objectives-book` |
+| [`DECISIONS.md`](DECISIONS.md) | Owner decisions: closed (name, title, license, relation to `objectives-book`) and open (package, reviewer, datasets and publication) |
 | [`CLAUDE.md`](CLAUDE.md) | Entry point for the implementing agent |
 | [`research-log.md`](research-log.md) | Sources verified so far, and to what depth |

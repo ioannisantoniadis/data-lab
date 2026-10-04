@@ -5,39 +5,10 @@ the date and choice when made. Agents read this file before starting work.
 
 ## Open: needed in Phase 0
 
-### D1. Repository name and book title ⚑
-
-Current working name: `training-data-lab`. Rename it any time with
-`gh repo rename <new> -R ioannisantoniadis/training-data-lab`.
-
-**Repository name:**
-
-| Option | Note |
-|---|---|
-| **`training-data-lab`** | *Recommended.* Matches `loss-functions-lab` and `optimization-lab`; says *training* data, not data engineering. |
-| `data-lab` | Shortest; generic. |
-| `data-for-learning` | Descriptive; breaks the `-lab` pattern. |
-| `what-the-model-sees` | Matches a title option; less searchable. |
-
-**Book title:**
-
-| Option | Note |
-|---|---|
-| **What the Model Sees: Training Data from First Principles** | *Recommended.* Names the thesis (the representation and distribution the model is given). |
-| Data for Learning, from First Principles | Plain; parallels the siblings. |
-| From Samples to Scaling Laws: How Data Shapes What Models Learn | States the arc. |
-| The Training Distribution | Precise and short; may read as narrow. |
-
-Check the final title against existing books before adopting it.
-
 ### D2. Package name ⚑
 
-`datalab` (working). Alternatives: one matching the repo name, such as `tdlab`.
-
-### D3. License ⚑
-
-- **(a)** MIT, like the sibling labs. *Recommended* for consistency.
-- **(b)** Text under CC BY-NC-SA 4.0 and code under MIT, as recommended for `objectives-book`.
+`datalab` (working; *recommended*, as it matches the repo name). Check that it does not
+clash with an existing PyPI package before choosing it, since readers may install it.
 
 ## Open: needed by Phase 2
 
@@ -54,16 +25,38 @@ Recruiting during Phase 1 keeps Phase 2 from waiting.
 - **Publication:** a GitHub Pages site on a personal account is public. Decide when to
   deploy: from Gate 2 (*recommended*, as with the sibling labs) or at release.
 
-## Open: needed before release
-
-### D6. Relationship to `objectives-book` ⚑
-
-- **(a)** Standalone sibling lab, linked from `objectives-book`'s data-source discussion.
-  *Recommended for now.*
-- **(b)** Absorbed later as a part of `objectives-book` ("What to optimize *on*"), which would
-  need that spec revised.
-
 ## Closed
+
+### D1. Repository name and book title (2026-10-04)
+
+- **Repository:** `data-lab`, renamed from `training-data-lab`. The scope is data for
+  learning in general (training, evaluation and test data, shift and leakage), not only
+  training sets. It matches the `-lab` siblings.
+- **Title:** *What the Model Sees: Training Data from First Principles*, approved by the
+  owner.
+- **Open point:** given the broader scope, the subtitle could drop "Training" (*What the
+  Model Sees: Data from First Principles*). Confirm before the title is set anywhere
+  public.
+
+### D3. License (2026-10-04)
+
+MIT, matching the sibling labs.
+
+### D6. Relationship to `objectives-book` (2026-10-04)
+
+**Standalone for now.** The owner's plan for `objectives-book` is to describe AI/ML processes
+from a different angle, and this book may later become part of it.
+
+To keep that path cheap:
+
+- follow `objectives-book`'s conventions where they do not conflict with the sibling labs:
+  - the portability rules (its SPEC §21.1);
+  - the notation choices (π for policies only, p/q);
+  - evidence labels;
+- keep the data-card records (`scripts/technique_data.py`) in a format that could be merged
+  with `objectives-book`'s method records.
+
+Do not edit `objectives-book` from here.
 
 ### D0. Co-authorship (2026-10-04)
 

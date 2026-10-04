@@ -1,7 +1,7 @@
-# SPEC: training data, from first principles
+# SPEC: data for learning, from first principles
 
-**Status:** draft v0.1, 2026-10-04. Working title and repo name are placeholders (see
-[`DECISIONS.md`](DECISIONS.md)). This file is the implementation contract for the agent that
+**Status:** draft v0.1, 2026-10-04. Repo `data-lab`; title *What the Model Sees: Training
+Data from First Principles* (see [`DECISIONS.md`](DECISIONS.md)); license MIT. This file is the implementation contract for the agent that
 builds the book. Read it end to end before writing anything.
 
 **Owner:** Ioannis Antoniadis. **Authors:** Ioannis Antoniadis, with Claude (Anthropic), as in
@@ -40,7 +40,7 @@ Appendices: [A. Source starting points](#appendix-a-source-starting-points) ·
 
 ## 1. What this book is
 
-A short Quarto book, with code, about **training data**: where it comes from, how it is
+A short Quarto book, with code, about **data for learning** (training, evaluation and test data): where it comes from, how it is
 transformed, how the training distribution is shaped, and how much of it (and which of it) a
 model needs. It is a sibling of `loss-functions-lab` (what to optimize) and `optimization-lab`
 (how to optimize). This book covers what the model is optimized *on*.
@@ -163,7 +163,7 @@ everything by being vague is not the goal.
 | `transformer-atlas` | Owns architectures and tokenization internals. |
 | `modern-ai-systems-and-methods` | Mentions leakage, drift and active learning briefly; this book goes deeper. Link both ways. |
 | `math-conceptual-map` | Prerequisites. |
-| `objectives-book` | Possible future absorption of this book as a part (⚑ D6). Do not edit it from here. |
+| `objectives-book` | Standalone for now; may later become part of it (D6, closed). Keep its conventions where possible. Do not edit it from here. |
 
 A grep of the sibling repos (2026-10-04) found no coverage of the following:
 
@@ -575,7 +575,7 @@ Each phase ends with a report and a stop. Nothing passes a gate (⛳) without th
   - `scripts/technique_data.py`;
   - test stubs for §8;
   - CI: lint, tests, the render, and the word-count check.
-- Owner decisions D1–D3.
+- Owner decision D2 (package name).
 - ⛳ **Gate 0.**
 
 ### Phase 1: testbeds and the signature figure
