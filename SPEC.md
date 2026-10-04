@@ -614,7 +614,7 @@ Record actual durations in `ROADMAP.md`.
 README.md  CLAUDE.md  SPEC.md  DECISIONS.md  CONVENTIONS.md  ROADMAP.md  COVERAGE.md
 research-log.md
 docs/                     Quarto book; images/ pre-generated; no code execution at render
-src/<package>/            testbeds T1–T5, transforms, selection methods (NumPy, SciPy, scikit-learn)
+src/<package>/ (D2; recommended data_lab)            testbeds T1–T5, transforms, selection methods (NumPy, SciPy, scikit-learn)
 tests/                    claim tests (§8)
 scripts/figures/          fig_<slug>.py, one per figure; _theme.py with save_figure
 scripts/technique_data.py records → data cards and the decision-guide table

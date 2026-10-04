@@ -7,8 +7,12 @@ the date and choice when made. Agents read this file before starting work.
 
 ### D2. Package name ⚑
 
-`datalab` (working; *recommended*, as it matches the repo name). Check that it does not
-clash with an existing PyPI package before choosing it, since readers may install it.
+`datalab` is taken on PyPI (checked 2026-10-04). It would also clash with that package for
+any reader who has it installed.
+
+- **Recommended:** distribution `data-lab`, which was free on PyPI on 2026-10-04, imported as
+  `data_lab`. It matches the repo name.
+- **Alternative:** `datalab4ml`, also free on that date.
 
 ## Open: needed by Phase 2
 
