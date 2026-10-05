@@ -666,6 +666,8 @@ Acceptance says the book is correct. Success says it is useful.
 3. **Expert read.** One external reviewer, with data-centric ML or applied statistics
    background, finds no wrong core claim and says the lens adds something (⚑ D4).
 
+These three tests are optional: welcome, but they gate nothing (D4, closed 2026-10-05).
+
 If the decision test fails after Part II, revisit the lens with the owner before Parts III–IV.
 
 ## 15. Plan and gates
@@ -714,8 +716,8 @@ Each phase ends with a report and a stop. Nothing passes a gate (⛳) without th
 - Write chapter 15 and the Map last, from the finished chapters.
 - Write the appendices.
 - Run the final fresh-agent audit and the success tests.
-- **Publication:** per the owner (⚑ D5). GitHub Pages on a personal account is public, so do
-  not deploy before D5.
+- **Publication:** done (D5, 2026-10-05): the repository is public and `docs.yml` deploys the
+  book to GitHub Pages from `main`.
 
 Record actual durations in `ROADMAP.md`.
 
@@ -730,7 +732,7 @@ tests/                    claim tests (§8)
 scripts/figures/          fig_<slug>.py, one per figure; _theme.py with save_figure
 scripts/technique_data.py records → data cards and the decision-guide table
 scripts/word_count.py     enforces the size cap
-.github/workflows/        ci.yml (ruff, pytest, word count), docs.yml (render; deploy after D5)
+.github/workflows/        ci.yml (ruff, pytest, word count), docs.yml (render; deploy to Pages from main)
 ```
 
 **Tooling:**

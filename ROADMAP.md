@@ -231,7 +231,7 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 - §9, signature figure Panel B: error against labels used, with the exact
   "uniform, new cases only" curve (already applied, as a correctness fix).
 
-## Phase 4: synthesis and release (2026-10-05): in progress
+## Phase 4: synthesis and release (2026-10-05): done; published
 
 - [x] Phases 2 and 3 committed locally (d0959e8), not pushed (D10).
 - [x] Chapter 15, *A Data Decision Guide*: a four-step procedure (deployment question →
@@ -250,9 +250,9 @@ Status markers: planned · researching · drafted · done (passes the quality ba
       figures, numbers and includes reproduced byte-identically. One major finding (Panel B
       plotted small pools at an unspent budget) and five minor ones fixed the same day; CI on
       GitHub (m6) is the owner's call.
-- [ ] Success tests (SPEC §14): the decision and "how much data" tests need 3–5 human
-      readers; the expert read needs D4. None can be run by the agent.
-- [ ] Publication: D5.
+- [ ] Success tests (SPEC §14): optional (D4); they need human readers.
+- [x] Publication (D5, 2026-10-05): repository made public; GitHub Pages deployed from `main`
+      by `docs.yml`; site linked from the README.
 
 ### What Phase 4 found
 
@@ -285,7 +285,7 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 | 1 | 2026-10-04 | 2026-10-04 |
 | 2 | 2026-10-04 | 2026-10-05 |
 | 3 | 2026-10-05 | 2026-10-05 |
-| 4 | 2026-10-05 | (in progress) |
+| 4 | 2026-10-05 | 2026-10-05 (published) |
 
 ## Decision log
 

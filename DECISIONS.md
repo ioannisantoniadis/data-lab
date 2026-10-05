@@ -3,22 +3,28 @@
 Decisions reserved for the owner (marked ⚑ in `SPEC.md`). Move a decision to **Closed** with
 the date and choice when made. Agents read this file before starting work.
 
-## Open: needed by Phase 2
+## Open
 
-### D4. External reviewer ⚑
-
-One reviewer with a data-centric ML or applied statistics background (SPEC §14.3).
-Recruiting during Phase 1 keeps Phase 2 from waiting.
-
-### D5. External datasets and publication ⚑
-
-- **Datasets:** the default is synthetic data plus scikit-learn's bundled data only. Any real
-  dataset (for example a small public audio or text set) needs approval, a license check,
-  and must not be required by CI.
-- **Publication:** a GitHub Pages site on a personal account is public. Decide when to
-  deploy: from Gate 2 (*recommended*, as with the sibling labs) or at release.
+Nothing is open. The external review (D4) and the reader tests (SPEC §14) are optional.
 
 ## Closed
+
+### D5. Publication (2026-10-05)
+
+**The repository is public and the book is published on GitHub Pages**, at
+<https://ioannisantoniadis.github.io/data-lab/>, deployed from `main` by
+`.github/workflows/docs.yml`, as with the sibling labs. The owner's view: there was no need
+for such hard gates to publish. (The account's plan does not serve Pages from private
+repositories, so publishing required making the repository public.)
+
+Datasets: unchanged. The book uses synthetic data and scikit-learn's bundled data only; any
+real dataset would still need a license check and must not be required by CI.
+
+### D4. External reviewer (2026-10-05)
+
+**Optional.** The owner: peer review of the book "was always a nice to have, not a
+requirement". The expert read and the reader tests of SPEC §14 are welcome but do not gate
+anything.
 
 ### D10. Gate 3 decisions (2026-10-05)
 

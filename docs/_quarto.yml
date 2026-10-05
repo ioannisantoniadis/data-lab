@@ -2,8 +2,6 @@ project:
   type: book
   output-dir: _site
 
-# No site-url, social-preview image or Pages deploy until DECISIONS D5 is closed: a GitHub Pages
-# site on this account is public. The social preview is a generated figure, added in Phase 1+.
 book:
   title: "What the Model Sees"
   subtitle: "Training Data from First Principles"
@@ -12,8 +10,16 @@ book:
     Where data for learning comes from, how it is transformed, how the training distribution is
     shaped, and how much of it (and which of it) a model needs, with every claim checked against
     synthetic data whose ground truth is known exactly.
+  site-url: "https://ioannisantoniadis.github.io/data-lab/"
   repo-url: "https://github.com/ioannisantoniadis/data-lab"
+  repo-actions: [edit, issue]
+  image: images/long_tail_signature.png
+  open-graph: true
+  twitter-card:
+    card-style: summary_large_image
   page-footer:
+    left: >-
+      Source on [GitHub](https://github.com/ioannisantoniadis/data-lab).
     right: "Rendered with [Quarto](https://quarto.org)."
   chapters:
     - index.qmd

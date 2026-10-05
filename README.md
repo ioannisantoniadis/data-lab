@@ -1,5 +1,9 @@
 # data-lab
 
+![The signature figure: the long tail sets a power law in the data, and skipping repeats steepens it per label](docs/images/long_tail_signature.png)
+
+- Site: **[ioannisantoniadis.github.io/data-lab](https://ioannisantoniadis.github.io/data-lab/)**
+
 *What the Model Sees: Training Data from First Principles*: a short book, with code, on data
 for learning. It covers:
 
@@ -15,8 +19,8 @@ and [optimization-lab](https://github.com/ioannisantoniadis/optimization-lab) (h
 This book covers what the model is optimized *on*.
 
 **Status:** Phases 0–3 done; Phase 4 (synthesis) drafted, 2026-10-05: every chapter and
-appendix is written; the final audit and the reader tests are pending. Private; no site is
-deployed. **License:** MIT. **Authors:** Ioannis Antoniadis, with Claude (Anthropic).
+appendix is written and the final audit passed; reader tests are optional. Public; the site is
+deployed from `main` by GitHub Actions. **License:** MIT. **Authors:** Ioannis Antoniadis, with Claude (Anthropic).
 
 ## What this book adds
 

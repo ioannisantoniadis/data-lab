@@ -24,8 +24,8 @@ book with code on data for learning (repo `data-lab`; see `DECISIONS.md`).
 - **Respect topic ownership:** link sibling repos for topics they own; never edit them.
 - **Follow the evidence,** even against the spec, and report it.
 - **Owner decisions:** ⚑ decisions are the owner's. Stop at every gate (⛳).
-- **Do not deploy the site before D5:** GitHub Pages on this account is public. `docs.yml`
-  deliberately has no deploy job.
+- **The site is public** (D5): `docs.yml` deploys every push to `main` to
+  <https://ioannisantoniadis.github.io/data-lab/>, so `main` must always render cleanly.
 - **Commit and push only when the owner asks.**
 
 ## Where things live
@@ -74,5 +74,6 @@ From the `ioannisantoniadis/claude-skills` marketplace:
 - **2026-10-05: Phase 4 drafted and committed; pushed to the private remote** (no deploy).
   Chapter 15, the Map, the appendices and the preface written; claims 44–46 pass; the final
   fresh-agent audit passed SPEC §14's bar and its findings are fixed
-  (`audits/2026-10-05-final-audit.md`). Open: the reader tests (need human readers), D4
-  (external reviewer), D5 (publication).
+  (`audits/2026-10-05-final-audit.md`).
+- **2026-10-05: published** (D5): the repository is public and the book is on GitHub Pages.
+  The external review and reader tests are optional (D4).
