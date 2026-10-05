@@ -1,9 +1,100 @@
 # The Map {#sec-map .unnumbered}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 4 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
+A model learns the distribution it is trained on, through the representation it is given. This
+page sets out the lens the book uses to read every data technique, the questions the book
+answers and where, and three ways through it.
+
+## Four levers, and evaluation
+
+Every technique that acts on training data changes one or more of four things:
+
+- **The representation:** how inputs and targets are encoded and transformed. Scaling, log
+  transforms, encodings, spectrograms and imputation pull this lever. It changes what the model
+  can see and, for the target, what the loss averages
+  ([Changing the Shape](06-changing-the-shape.qmd#sec-shape)).
+- **The sampling distribution $q$:** which examples are drawn, compared with the target
+  distribution $p$ the model will face. Stratification, resampling, augmentation,
+  deduplication and data selection pull this lever
+  ([The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp)).
+- **The weights $w$:** how much each example counts. Class weights, prior-shift correction and
+  importance weights pull this lever. Resampling and reweighting aim at the same target, the
+  distribution proportional to $q \cdot w$; they differ in variance
+  ([Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling)).
+- **The labels:** what each example says. Label noise, label correction and label-changing
+  augmentation act here ([Labels](02-labels.qmd#sec-labels)).
+
+Some techniques change none of the four. Splits, leakage control, deduplication across a
+split, shift detection and learning-curve estimation change what is *measured*, not what is
+learned. Their cards say *evaluation only*.
+
+Which lever a technique pulls decides what it can fix and what it can break. A representation
+cannot correct a biased sample; a weight cannot add an input the model never sees; a relabeling
+cannot remove a shift in the inputs. Every technique gets a **data card** that names its lever,
+the assumption it rests on, what it does to the learned function, what it is fit on, how it
+fails and which test checks it.
+
+{{< include ../includes/cards/log-target.md >}}
+
+The pair $(q, w)$ is the pair `rl-for-llms` uses to describe reinforcement-learning methods
+for language models, where $q$ is the data regime and $w$ the per-sample weight of the
+estimator ([rl-for-llms, The Map](https://ioannisantoniadis.github.io/rl-for-llms/chapters/00-map.html)).
+Here it describes data engineering.
+
+## The questions, and where they are answered
+
+| Question | Short answer | Where |
+|---|---|---|
+| When should a log transform replace standard or min-max scaling, and which models care? | Affine scaling never changes a distribution's shape; it matters to distance-based, regularized and gradient-trained models, and not to tree splits. A nonlinear transform changes the shape and, for a target, what the loss estimates | [Affine Scaling](05-affine-scaling.qmd#sec-affine), [Changing the Shape](06-changing-the-shape.qmd#sec-shape) |
+| What do text, images, audio and tables each require? | A representation that exposes their structure: frequencies for audio, order for time series, codes for categories, counts for text | [Data Types](03-data-types.qmd#sec-data-types), [Encoding and Features](07-encoding-and-features.qmd#sec-encoding) |
+| When to resample and when to reweight? | Both aim at the same target; reweighting keeps all the data and has lower variance; both need a probability correction afterwards | [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling) |
+| What does augmentation actually add? | An assumption about $p$: helpful when the invariance is true, label noise when it is not | [Augmentation](09-augmentation.qmd#sec-augmentation) |
+| How much data does a problem need, and what does that depend on? | Noise sets the floor, dimension and target complexity the approach; a pilot can bound the error but rarely the data needed near the floor | [Learning Curves](11-learning-curves.qmd#sec-learning-curves) |
+| Why do returns on more data diminish as a power law? | Several accounts; in one, made exact here, error is the probability mass of cases not yet seen, which falls as a power law when cases are long-tailed | [Scaling Laws](12-scaling-laws.qmd#sec-scaling-laws), [Why Power Laws](13-why-power-laws.qmd#sec-long-tail) |
+| Can smarter selection beat that law? | Not escape it. Per label, skipping what is already covered steepens it; per example drawn, nothing does better; practical selectors each work under a condition | [Why Power Laws](13-why-power-laws.qmd#sec-long-tail), [Choosing Data](14-choosing-data.qmd#sec-choosing-data) |
+
+The last row differs from the question as first posed: the book set out to show how selection
+can beat the power law, and the exact model showed that it cannot, only steepen it per label.
+
+## How the book argues
+
+Every chapter follows the same template: the problem, the assumptions, a derivation or a
+demonstration, a boxed result, what it does to the learned model, its failure modes with a
+figure, what the toy cannot show, and connections.
+
+- **Computed, not illustrated.** Every figure is produced by a script from one of five
+  synthetic testbeds whose truth is known exactly
+  ([The Testbeds](../appendix-testbeds.qmd#sec-testbeds)). Every checkable statement names
+  the test that checks it. From [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling) on, every quoted number is written into the text by the script that computed it; earlier numbers were copied from fresh runs and rechecked.
+- **Evidence labeled.** Statements about the literature carry their status: a mathematical
+  fact, a replicated finding, a single study, or contested, with a date where the field is
+  moving.
+- **Limits stated.** Each chapter says what its toy cannot show; the list is collected in
+  [What the Toys Cannot Show](../appendix-toy-limits.qmd#sec-toy-limits).
+
+## Reading paths
+
+- **Preparing a dataset for a model:** [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp),
+  then [Cleaning](04-cleaning.qmd#sec-cleaning) to
+  [Encoding and Features](07-encoding-and-features.qmd#sec-encoding),
+  [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling), and
+  [A Data Decision Guide](15-decision-guide.qmd#sec-decision-guide).
+- **Deciding how much data to collect, and which:**
+  [Learning Curves](11-learning-curves.qmd#sec-learning-curves) through
+  [Choosing Data](14-choosing-data.qmd#sec-choosing-data).
+- **Deployment data that will not look like the training data:**
+  [Distribution Shift](10-distribution-shift.qmd#sec-shift),
+  [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling) and
+  [Augmentation](09-augmentation.qmd#sec-augmentation).
+
+Prerequisites: probability and expectation, least squares and logistic regression, and enough
+Python to read the code. What to optimize is the subject of
+[loss-functions-lab](https://ioannisantoniadis.github.io/loss-functions-lab/), and how to
+optimize the subject of [optimization-lab](https://ioannisantoniadis.github.io/optimization-lab/);
+this book covers what the model is optimized *on*.
 
 ## Connections
 
-- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): the neighboring chapter.
+- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): $p$ and $q$
+  defined, and the first lever at work.
+- [A Data Decision Guide](15-decision-guide.qmd#sec-decision-guide): the levers as a
+  procedure, with every card in one table.

@@ -15,12 +15,17 @@ runs out and has to be repeated?
 
 ## Assumptions
 
-1. **The results below are empirical.** Unless stated otherwise, each is a finding of the cited
+1. **Symbols follow the cited papers in this chapter.** $D$ is a number of training tokens and
+   $N$ of parameters; $E$, $A$, $B$, $\alpha$ and $\beta$ are Hoffmann et al.'s fitted constants,
+   and $\alpha_D$, $\alpha_N$ Kaplan et al.'s exponents. They are not the book's learning curve
+   $E_n$, Zipf exponent $\alpha$ or dataset $D$
+   ([Notation](../appendix-notation.qmd#sec-notation-conflicts)).
+2. **The results below are empirical.** Unless stated otherwise, each is a finding of the cited
    study on its models and data, not a mathematical fact. Each is labeled with how widely it has
    been replicated, and dated.
-2. **Loss is next-token cross-entropy, or test error, on held-out data from the training
+3. **Loss is next-token cross-entropy, or test error, on held-out data from the training
    distribution.** Downstream task performance can scale differently.
-3. **For the demonstration, the model is a smoothed bigram model on T4.** Its loss and the
+4. **For the demonstration, the model is a smoothed bigram model on T4.** Its loss and the
    source's entropy rate are exact; it has nothing to say about neural networks' exponents.
 
 ## Derivation or demonstration

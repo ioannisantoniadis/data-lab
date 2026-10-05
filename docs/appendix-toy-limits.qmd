@@ -1,9 +1,20 @@
 # What the Toys Cannot Show {#sec-toy-limits}
 
-::: {.callout-warning title="Stub"}
-Assembled in Phase 4 from every chapter's "What the toy cannot show" section.
-:::
+Every result in this book is computed on a small synthetic testbed whose truth is known
+exactly ([The Testbeds](appendix-testbeds.qmd#sec-testbeds)). That is what makes the results
+checkable, and it is also their limit: a toy shows a mechanism and its direction, not its size
+on real data. Each chapter ends by saying what its toy cannot show. This appendix collects
+those sections, generated from the chapters, so the limits can be read in one place.
 
-Every result in this book is computed on a small synthetic testbed. This appendix will collect,
-in one place, what those computations do not settle: scale, real data, wall-clock cost, and
-behavior of real architectures.
+Four limits recur:
+
+- **Scale.** The testbeds have a few dimensions and thousands of examples; the reported
+  large-scale results are stated from their sources, not reproduced.
+- **Real data.** Real missingness, noise, shift and duplication mix mechanisms that a testbed
+  isolates one at a time, and which mechanism holds is often not testable from the data.
+- **Real models.** Most demonstrations use linear models, a memorizer or a bigram model; how
+  much a flexible model is affected is not measured here.
+- **Estimated, not known, quantities.** The testbeds give exact margins, posteriors, density
+  ratios and floors; practice has to estimate them, and the estimates carry their own error.
+
+{{< include includes/toy-limits.md >}}

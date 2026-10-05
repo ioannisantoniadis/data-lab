@@ -112,6 +112,16 @@ $\mathbb{E}_q[w^2]$ grew from 1 to {{< var ch8.w2_last >}}. The variance is know
 form here, and its value lay inside the bootstrap interval of the measured variance at every
 shift (`tests/test_shift.py::test_importance_weighting_unbiased_with_growing_variance`).
 
+::: {.callout-important title="Lineage: this is importance sampling"}
+Writing an average under $p$ as a weighted average under $q$ is importance sampling.
+Weighting a model's training loss by $p(x)/q(x)$ to correct covariate shift goes back at least
+to Shimodaira's 2000 paper, whose title states the method: improving predictive inference
+under covariate shift by weighting the log-likelihood function [@shimodaira2000improving; only
+its bibliographic record could be read for this book]. `rl-for-llms` uses the same pair
+$(q, w)$ for reinforcement learning
+([rl-for-llms, The Map](https://ioannisantoniadis.github.io/rl-for-llms/chapters/00-map.html)).
+:::
+
 {{< include ../includes/cards/importance-weighting.md >}}
 
 **Synthetic minority examples.** SMOTE oversamples the minority class by "taking each minority

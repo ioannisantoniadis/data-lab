@@ -108,7 +108,7 @@ injected flip from a correct label on an example whose true class is itself unce
 with 20% symmetric flips (@fig-label-noise, panel B), its precision falls from 0.999 when the
 clean classes overlap little (Bayes risk 0.04) to 0.34 when they overlap a lot (Bayes risk
 0.35). The latter is barely above the 0.20 that flagging at random would achieve. Recall stays
-between 0.55 and 0.69: flips of examples near the boundary look like ordinary examples and are
+between 0.56 and 0.68: flips of examples near the boundary look like ordinary examples and are
 missed at every level of overlap. In the chapter's terms, cleaning by confident learning pulls
 the labels lever safely only where the data has little aleatoric uncertainty
 (`tests/test_labels.py::test_confident_learning_precision_depends_on_separability`).

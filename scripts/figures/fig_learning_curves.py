@@ -60,7 +60,7 @@ for d, color in ((3, SEQUENTIAL_BLUE[4]), (10, SEQUENTIAL_BLUE[7]), (30, SEQUENT
     ax.annotate(f"{d} features", xy=(sizes[at], mean[at]), xytext=(6, 2),
                 textcoords="offset points", fontsize=9, color=INK)
 ax.axhline(1.0, color=INK, lw=1, ls=(0, (4, 3)))
-ax.annotate("Bayes floor $\\sigma^2$", xy=(sizes[-1], 1.0), xytext=(-4, -12),
+ax.annotate("Bayes floor $\\sigma_\\varepsilon^2$", xy=(sizes[-1], 1.0), xytext=(-4, -12),
             textcoords="offset points", ha="right", fontsize=9, color=INK_SECONDARY)
 ax.set_ylim(0.9, 2.2)
 ax.set_xlabel("training examples $n$")
@@ -110,7 +110,7 @@ ax.annotate(f"truth: {truth_n}", xy=(0, truth_n), xytext=(0, 4), textcoords="off
 ax.set_yscale("log")
 ax.set_ylim(10, 3e4)
 ax.set_xlabel("pilot study (30 independent pilots)")
-ax.set_ylabel("examples needed for error $1.05\\,\\sigma^2$")
+ax.set_ylabel("examples needed for error $1.05\\,\\sigma_\\varepsilon^2$")
 ax.legend(loc="lower right", fontsize=8.5)
 ax.set_title("C. How much data? Mostly the floor")
 

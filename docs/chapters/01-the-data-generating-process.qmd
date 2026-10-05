@@ -82,8 +82,8 @@ population (checked by `tests/test_selection.py::test_selection_on_x_keeps_the_c
 When $s(x, y)$ is known, as it is in the testbed, even selection on $y$ can be undone. Since
 $p \propto q / s$, weighting each kept example by $1/s(x, y)$ restores the regression under
 $p$. It does so slowly, because the rarest kept examples get the largest weights. The weighted
-coefficient was 0.781 with 4,000 examples per seed and 0.801 with 256,000, as the largest
-weight grew from about 60 to about 480
+coefficient was 0.781 with 4,000 examples per seed and 0.801 with 256,000, as the median largest
+weight grew from 64 to 478
 (`tests/test_selection.py::test_known_selection_probabilities_undo_selection_on_y`). Real
 selection probabilities are almost never known, which is why the result box speaks of data
 from $q$ alone.
@@ -128,7 +128,7 @@ where $p(x)$ puts its mass.
 
 Selection on $y$ changes the target itself. In the demonstration, the fitted line is flatter
 than the truth because large targets were removed more often where $z_1$ is large, which
-pulls the high end down. The model is then miscalibrated everywhere, and the error does not
+pulls the high end down. The model is then miscalibrated over most of the range, and the error does not
 shrink with more data. It is a property of $q$, not of the sample size.
 
 ## Failure modes

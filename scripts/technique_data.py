@@ -160,11 +160,11 @@ T = [
         status="verified",
         sources=["vanbuuren2018fimd"],
         changes="Sampling distribution $q$: keeps only rows whose value was observed",
-        assumption="MCAR: whether a value is missing is unrelated to anything",
+        assumption="For means and other summaries, MCAR: whether a value is missing is unrelated to anything. For a model of $p(y \\mid x)$, it is enough that missingness depends only on the model's inputs",
         effect="Under MCAR, none beyond a smaller sample; under MAR or MNAR the kept rows follow a different distribution, so means shift, and so do fitted relationships unless the missingness depends only on the model's inputs (selection on $x$)",
         models="Every model",
         fit_on="Nothing is fit; the selection is made by the missingness itself",
-        failure_modes="MAR or MNAR missingness (biased estimates); many columns with a little missingness each (few complete rows left)",
+        failure_modes="MAR or MNAR missingness for summaries, and missingness that depends on the target for models (biased estimates); many columns with a little missingness each (few complete rows left)",
         alternatives="Regression or multiple imputation (MAR); modeling the missingness (MNAR)",
         checked_by="tests/test_missing.py::test_mcar_mean_imputation_shrinks_variance_mar_complete_case_biased",
     ),
@@ -548,7 +548,7 @@ T = [
         effect="On Hutter's model the error per label falls as $n^{-\\alpha}$ instead of $n^{-\\alpha/(1+\\alpha)}$: a steeper power law, still a power law. Skipping repeats buys the exponent; frequency order adds only a constant factor (about 1.5)",
         models="Models that learn one case per example (memorization-like); the gain for models that generalize between cases is not measured here",
         fit_on="An unlabeled pool (or an oracle) and the record of what has been labeled",
-        failure_modes="The gain is per label: it costs about $n^{1+\\alpha}$ unlabeled draws, and per draw nothing beats uniform sampling; a pool proportional to the labeling budget gives only a constant-factor gain; recognizing coverage is trivial here and hard for real data (near-duplicates, semantic similarity)",
+        failure_modes="The gain is per label: it costs about $n^{1+\\alpha}$ unlabeled draws, and per draw nothing beats uniform sampling; a pool with fewer distinct cases than the labeling budget cannot spend it, and its error is that of the pool; recognizing coverage is trivial here and hard for real data (near-duplicates, semantic similarity)",
         alternatives="Uniform sampling; active learning by model uncertainty; deduplication",
         checked_by="tests/test_long_tail.py::test_deduplicated_stream_reaches_the_oracle_exponent_per_label",
     ),
@@ -664,11 +664,29 @@ T = [
         alternatives="Deduplication only; reweighting by quality instead of discarding",
         checked_by="source: goyal2024scaling",
     ),
+    dict(
+        slug="per-recording-normalization",
+        name="Per-recording (per-sample) normalization",
+        chapter="15-decision-guide",
+        levers=["representation"],
+        status="verified",
+        sources=[],
+        changes="Representation (of $x$): each example is rescaled by a statistic of itself (here, its mean log spectrum is subtracted), not by statistics of the training set",
+        assumption="The nuisance acts on the whole example the same way (a recording gain scales every frequency alike), and the absolute level carries no information about the label",
+        effect="Makes the features exactly invariant to the nuisance, so a shift in it at deployment cannot move the predictions",
+        models="Every model that sees the features; unlike per-feature scaling, it changes what even a tree can see",
+        fit_on="Nothing: each example's own values",
+        failure_modes="The level does carry label information (loudness that matters is erased); the nuisance acts differently on different parts of the example (frequency-dependent gain is only partly removed)",
+        alternatives="Augmentation with random gains (teaches the invariance through $q$); per-feature scaling, which does not remove a per-example offset",
+        checked_by="tests/test_worked_examples.py::test_centering_the_log_spectrum_removes_any_gain_exactly",
+    ),
 ]
 
 ROOT = Path(__file__).resolve().parents[1]
 CARDS = ROOT / "docs" / "includes" / "cards"
 GUIDE = ROOT / "docs" / "includes" / "decision-guide.md"
+TOY_LIMITS = ROOT / "docs" / "includes" / "toy-limits.md"
+TOY_HEADING = "## What the toy cannot show"
 CHECKED_BY = re.compile(r"^(tests/test_[a-z0-9_]+\.py::test_[a-z0-9_]+|source: [a-z0-9]+)$")
 
 
@@ -733,6 +751,28 @@ def guide_table(records: list[dict]) -> str:
     return "\n".join([head, sep, *rows]) + "\n"
 
 
+def toy_limits(chapters_dir: Path) -> str:
+    """Every chapter's "What the toy cannot show" section, in chapter order, for the appendix.
+
+    The appendix lives in docs/, the chapters in docs/chapters/, so relative links in the
+    copied text are rewritten for their new location."""
+    parts = []
+    for path in sorted(chapters_dir.glob("[0-9][0-9]-*.qmd")):
+        text = path.read_text()
+        if TOY_HEADING not in text:
+            continue
+        title_line = text.splitlines()[0]
+        m = re.match(r"# (.+?) \{#(sec-[a-z0-9-]+)", title_line)
+        if not m:
+            continue
+        body = text.split(TOY_HEADING, 1)[1].split("\n## ", 1)[0].strip()
+        body = body.replace("](../", "](")
+        body = re.sub(r"\]\((\d\d-[a-z0-9-]+\.qmd)", r"](chapters/\1", body)
+        parts.append(f"## [{m.group(1)}](chapters/{path.name}#{m.group(2)}) {{.unnumbered}}"
+                     f"\n\n{body}\n")
+    return "\n".join(parts)
+
+
 def main() -> int:
     problems = validate(T)
     if problems:
@@ -742,6 +782,7 @@ def main() -> int:
     for r in T:
         (CARDS / f"{r['slug']}.md").write_text(card(r))
     GUIDE.write_text(guide_table(T))
+    TOY_LIMITS.write_text(toy_limits(ROOT / "docs" / "chapters"))
     print(f"wrote {len(T)} card(s) and the decision guide")
     return 0
 

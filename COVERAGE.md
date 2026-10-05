@@ -87,5 +87,5 @@ of each chapter (SPEC §13) is tracked in ROADMAP.md, not here.
 
 | Done | Item | Depth | Chapter |
 |---|---|---|---|
-| [ ] | Every data card in the generated table | D | [A Data Decision Guide](docs/chapters/15-decision-guide.qmd) |
-| [ ] | Two worked examples (one tabular, one image or audio) | D | [A Data Decision Guide](docs/chapters/15-decision-guide.qmd) |
+| [x] | Every data card in the generated table | D | [A Data Decision Guide](docs/chapters/15-decision-guide.qmd) |
+| [x] | Two worked examples (one tabular, one image or audio) | D | [A Data Decision Guide](docs/chapters/15-decision-guide.qmd) |

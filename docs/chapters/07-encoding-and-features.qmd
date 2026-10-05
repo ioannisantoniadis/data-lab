@@ -112,7 +112,7 @@ first. Use `fit_transform` on training data and `transform` on new data, or put 
 `Pipeline`. Its folds are shuffled without a fixed seed by default, so pass a splitter such as
 `cv=KFold(5, shuffle=True, random_state=0)` for reproducible results (the `shuffle` and
 `random_state` arguments are deprecated in 1.9). `TfidfVectorizer`'s default `token_pattern`
-keeps tokens of two or more alphanumeric characters, so one-character words are dropped.
+is `(?u)\b\w\w+\b`: tokens of two or more word characters (Unicode letters, digits or the underscore), so one-character words are dropped.
 :::
 
 ## What it does to the learned model

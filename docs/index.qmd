@@ -1,8 +1,8 @@
 # Welcome {.unnumbered}
 
 ::: {.callout-warning title="Work in progress"}
-Parts I to IV (chapters 1–14) are drafted; chapters 8–14 are awaiting the author's review.
-The decision guide and the other synthesis pages are still stubs; nothing in a stub is a claim.
+Every chapter is drafted; the later chapters and the synthesis are awaiting the author's
+review.
 :::
 
 A model learns the distribution it is trained on, through the representation it is given. This
@@ -15,3 +15,18 @@ checkable statement is a test in the repository, and every figure is computed fr
 data whose ground truth is known exactly.
 
 Start at [the map](chapters/00-the-map.qmd#sec-map).
+
+## How this book was made {.unnumbered}
+
+The book was written by Claude (Anthropic), working through Claude Code, with Ioannis
+Antoniadis. Claude did the research, drafting, code, tests and figures. Ioannis Antoniadis set
+the direction, decided every question reserved for the owner, reviewed the chapters, and is
+responsible for every claim. The model used throughout was Claude Opus 5.5.
+
+The process exists because a model writing from memory is most wrong about exactly the
+details a reader copies: equations, library defaults, reported numbers and dates. So every
+technical statement was taken from a source that was opened and read, and the depth of each
+reading is logged in the repository's `research-log.md`. Every checkable statement is a test,
+from [Sampling and Weighting](chapters/08-sampling-and-weighting.qmd#sec-sampling) on, every number in the text is written by the script that computed it (earlier numbers were copied from fresh runs and rechecked by the final audit), and every figure was
+looked at after it was generated. Independent reviews by fresh sessions, with no drafting
+context, are kept in the repository's `audits/` folder and `review.md`.

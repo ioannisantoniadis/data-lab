@@ -69,7 +69,10 @@ From the `ioannisantoniadis/claude-skills` marketplace:
   coverage-selection derivation, and the signature figure. See ROADMAP.md, *What Phase 1
   showed*.
 - **2026-10-05: Phase 2 done; ⛳ Gate 2 passed** (D9; SPEC v0.4), uncommitted.
-- **2026-10-05: Phase 3 drafted; at ⛳ Gate 3** (uncommitted). Chapters 8–14 written; claims
-  10–13, 17–20 and 36–43 pass; the chapter 13 skeptical review is resolved
-  (`audits/2026-10-05-ch13-skeptical-review.md`). Waiting for the owner's review of chapters
-  8–14 and the Gate 3 decisions (ROADMAP.md, *Proposed for SPEC at Gate 3*).
+- **2026-10-05: Phase 3 done; ⛳ Gate 3 passed** (D10; SPEC v0.5). Phases 2–3 committed
+  locally (d0959e8), not pushed.
+- **2026-10-05: Phase 4 drafted and committed; pushed to the private remote** (no deploy).
+  Chapter 15, the Map, the appendices and the preface written; claims 44–46 pass; the final
+  fresh-agent audit passed SPEC §14's bar and its findings are fixed
+  (`audits/2026-10-05-final-audit.md`). Open: the reader tests (need human readers), D4
+  (external reviewer), D5 (publication).

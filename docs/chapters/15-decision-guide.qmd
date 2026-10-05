@@ -1,20 +1,176 @@
 # A Data Decision Guide {#sec-decision-guide}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 4 (SPEC §15). Not yet written; nothing on this page is a claim.
+Every chapter so far ended with a technique, the lever it pulls, the assumption it rests on and
+the way it fails. This chapter turns those cards into a procedure, then runs the procedure on
+two problems the book has not walked through: one tabular, one audio. Each step is checked
+against a known truth, which a real project never has. The table at the end lists every card.
+
+## The problem
+
+Faced with a dataset and a model to train, which data techniques should be used, in what
+order, and how can each choice be checked before it is trusted?
+
+## Assumptions
+
+1. **The deployment question is known.** What the predictions will be used for (a total, a
+   ranking, a decision at a threshold) decides what "right" means. Without it, no step below
+   can be checked.
+2. **Some data can be held out** to check each step, split as deployment will be: by time for
+   forecasts, by group for new groups, with duplicates removed across the split
+   ([Cleaning](04-cleaning.qmd#sec-cleaning)).
+3. **The worked examples use T1 and T5** ([The Testbeds](../appendix-testbeds.qmd#sec-testbeds)),
+   so every check can be made against the exact answer.
+
+## Derivation or demonstration
+
+**The procedure.** Four questions, asked in order. Each names a lever, and each lever has its
+own checks.
+
+1. **What will the model face, and what must it get right?** Name $p$, the deployment
+   distribution, and the quantity the predictions must estimate: a conditional mean, a median,
+   a probability at a given prior. Compare $p$ with the data in hand, $q$. Every gap between
+   them is a reason for a technique, and the gap decides which
+   ([The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp),
+   [Distribution Shift](10-distribution-shift.qmd#sec-shift)).
+2. **Is the representation right for the model?** For each input and for the target: does the
+   model need the units, the shape, the order, or a structure the raw values hide? This is the
+   representation lever ([Data Types](03-data-types.qmd#sec-data-types),
+   [Affine Scaling](05-affine-scaling.qmd#sec-affine),
+   [Changing the Shape](06-changing-the-shape.qmd#sec-shape),
+   [Encoding and Features](07-encoding-and-features.qmd#sec-encoding)).
+3. **Does the training distribution match what the model must learn?** If $q$ differs from $p$
+   in a known way, correct it by resampling, weights or augmentation: the $q$ and $w$ levers
+   ([Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling),
+   [Augmentation](09-augmentation.qmd#sec-augmentation)). If the labels are noisy, that is the
+   label lever ([Labels](02-labels.qmd#sec-labels)).
+4. **Is there enough data, and the right data?** Fit a learning curve on a pilot, with an
+   interval, and decide between more data, different data and a different model
+   ([Learning Curves](11-learning-curves.qmd#sec-learning-curves),
+   [Choosing Data](14-choosing-data.qmd#sec-choosing-data)).
+
+After each step, the check is the same: compare with a baseline that skips the step, on
+held-out data split as deployment will be, over several seeds. A technique whose assumption
+fails can make things worse, and only a comparison shows it.
+
+**Worked example 1: a skewed cost with a missing field (tabular).** A team predicts a cost for
+each new case and adds the predictions up to plan a budget. The cost is positive and
+right-skewed. One field is missing in {{< var ch15.missing_rate >}}% of the training rows, more
+often when another field is large, because it was recorded only for some cases. New cases
+always have it. The data are T1 with log-normal noise of standard deviation
+{{< var ch15.sigma >}} on the log scale, so the true conditional mean is known (20 seeds).
+
+1. *What must be right?* The total, so each prediction must estimate $\mathbb{E}[y \mid x]$,
+   the conditional mean, not the median. The missingness depends on an observed field:
+   missing at random ([Cleaning](04-cleaning.qmd#sec-cleaning)).
+2. *Representation.* A linear model on the raw cost cannot follow its exponential shape: the
+   per-row relative error was {{< var ch15.raw_rmse >}}. Least squares on $\log y$, transformed
+   back with $\exp$, estimates the geometric mean, so the total came out
+   {{< var ch15.naive_bias >}}% too low, as the derivation predicts
+   ($e^{-\sigma_\varepsilon^2/2} - 1$ = {{< var ch15.naive_expected >}}%). The smearing factor restored
+   the mean: the total was off by {{< var ch15.smear_bias >}}% on average, between
+   {{< var ch15.smear_bias_min >}}% and {{< var ch15.smear_bias_max >}}% across seeds, with a
+   per-row error of {{< var ch15.smear_rmse >}}
+   ([Changing the Shape](06-changing-the-shape.qmd#sec-shape)).
+3. *Training distribution.* Dropping the incomplete rows selects on an observed field, which
+   leaves $p(y \mid x)$ unchanged ([The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp)):
+   the numbers in step 2 are for complete cases. Mean imputation, by contrast, fills the field
+   with a constant that ignores its correlation with the others; it shrank the fitted
+   coefficients, and with smearing the total was still {{< var ch15.mean_smear_bias >}}% off.
+   Regression imputation kept the coefficients, but its imputed values carry no noise, so
+   their error landed in the residuals that the smearing factor averages: the total was
+   {{< var ch15.regress_smear_bias >}}% too high
+   (`tests/test_worked_examples.py::test_regression_imputation_inflates_the_smearing_factor`).
+   The two corrections interact; checking each against a baseline is what shows it.
+4. *Enough data?* With 2,000 rows, the total still varied by several percent from seed to
+   seed; a learning curve on a pilot would say whether more rows narrow that spread ([Learning Curves](11-learning-curves.qmd#sec-learning-curves)).
+
+The whole example is one test
+(`::test_cost_example_needs_smearing_and_the_right_missing_value_treatment`).
+
+**Worked example 2: tones recorded at an unknown gain (audio).** A device must tell two tones
+apart (400–600 Hz against 1,200–1,400 Hz, random phase, in noise) from a handful of labeled
+recordings made at one gain. Deployed devices record at gains up to 100 times higher or lower
+(±40 dB). The data are T5 (30 seeds).
+
+1. *What will it face?* The same tones at other gains: a covariate shift whose effect on the
+   input is known exactly. A gain multiplies tone and noise alike, so it adds the same
+   constant, $\log g$ for a gain $g$, to every frequency of the log spectrum.
+2. *Representation.* A linear model on the raw waveform was at chance
+   ({{< var ch15.acc_raw >}}), because the phase is random. The log spectrum drops the phase
+   ([Data Types](03-data-types.qmd#sec-data-types)). Trained on 10 recordings, it scored
+   {{< var ch15.acc_noshift_10 >}} at the training gain and {{< var ch15.acc_spec_10 >}} at
+   the deployment gains.
+3. *Two fixes, two levers.* Subtracting each recording's mean log spectrum removes any gain
+   exactly (`::test_centering_the_log_spectrum_removes_any_gain_exactly`): a representation fix,
+   scoring {{< var ch15.acc_centered_10 >}}. Augmenting each training recording with four
+   copies at random gains, labels unchanged, teaches the same invariance through $q$
+   ([Augmentation](09-augmentation.qmd#sec-augmentation)): {{< var ch15.acc_aug_10 >}}. The
+   representation fix needs no extra training data; the augmentation needs no knowledge of how
+   the gain acts, only that it does not change the label.
+4. *Enough data?* With 100 recordings the plain log spectrum scored
+   {{< var ch15.acc_spec_100 >}} at the deployment gains against {{< var ch15.acc_noshift_100 >}}
+   without the shift: here, more data alone also closes the gap
+   (`::test_tone_example_gain_shift_and_its_two_fixes`).
+
+{{< include ../includes/cards/per-recording-normalization.md >}}
+
+::: {.callout-note title="Result: a procedure, not a recipe"}
+Name the deployment distribution and the quantity to get right; fix the representation; match
+the training distribution to what must be learned; then ask whether there is enough data. Each
+step pulls one lever, rests on one assumption, and is checked against a baseline that skips it.
+In the tabular example the right target treatment depended on the missing-value treatment; in
+the audio example two levers fixed the same shift.
 :::
 
-## Planned coverage {.unnumbered}
+::: {.callout-note title="In practice"}
+Write the deployment question down before touching the data. Change one thing at a time and
+keep the baseline that skips it. Report the spread across seeds or folds, not one number. When
+two techniques interact (a back-transform and an imputation; balancing and a threshold),
+check them together.
+:::
 
-- Every data card in the generated table (D)
-- Two worked examples (one tabular, one image or audio) (D)
+## What it does to the learned model
+
+A procedure does not change a model; the techniques it picks do, each through its lever. What
+the procedure adds is an account of why each technique is there, which assumption it rests on,
+and which check would show it failing. That account is what a reviewer, or a later version of
+the same team, needs when the deployment distribution moves.
+
+## Failure modes
+
+![Panel A: in the tabular example, the predicted total relative to the true total for each treatment of the missing field and of the skewed target (mean and range over 20 seeds); the dashed line is the derived bias of the plain back-transform. Panel B: the per-row relative error of the same pipelines and of least squares on the raw cost. Panel C: in the audio example, test accuracy against the number of training recordings when deployment gains vary by up to ±40 dB, for the raw waveform, the log spectrum, the centered log spectrum and the gain-augmented log spectrum, with the unshifted accuracy for reference (30 seeds). Each step of the procedure is checked against a truth: the skewed target needs smearing, the missing field a treatment that keeps $p(y \mid x)$, and the gain shift a representation or an augmentation that removes it.](../images/decision_guide.png){#fig-decision-guide}
+
+@fig-decision-guide shows the checks. The failure modes of the procedure itself:
+
+- **No deployment question.** Without it, "the model is accurate" has no meaning: the plain
+  back-transform is a fine median and a bad mean (panel A).
+- **Checking techniques one at a time when they interact.** Regression imputation and smearing
+  are each sound alone, and together bias the total upward (panel A).
+- **Judging by one metric.** Least squares on the raw cost, with complete cases, missed the
+  total by only {{< var ch15.raw_bias >}}% but got every row wrong (panel B).
+- **Fixing a shift twice, or not at all.** Centering and augmentation fix the same gain shift;
+  using both adds cost, and using neither costs accuracy at small $n$ (panel C).
+
+## What the toy cannot show
+
+Here the truth is known, so every check is exact. In practice the checks use held-out data,
+which carries its own noise and its own shift, and the deployment question is often vague.
+Real tabular data has more fields, missing for less tidy reasons; real audio has noise,
+reverberation and gains that differ by frequency. The procedure transfers; the numbers do not.
 
 ## Every data card
 
-The table is generated from `scripts/technique_data.py`.
+The table is generated from `scripts/technique_data.py`: one row per card, in chapter order.
 
 {{< include ../includes/decision-guide.md >}}
 
 ## Connections
 
-- [Choosing Data](14-choosing-data.qmd#sec-choosing-data): the neighboring chapter.
+- [The Map](00-the-map.qmd#sec-map): the four levers and where each question of the book is
+  answered.
+- [Changing the Shape](06-changing-the-shape.qmd#sec-shape): the back-transform and smearing
+  used in the tabular example.
+- [Cleaning](04-cleaning.qmd#sec-cleaning): the missing-value mechanisms behind step 3 of the
+  same example.
+- [Augmentation](09-augmentation.qmd#sec-augmentation): invariance through $q$, the second fix
+  in the audio example.

@@ -1,12 +1,44 @@
 # Glossary {#sec-glossary}
 
-::: {.callout-warning title="Stub"}
-Filled as chapters are written. Each term links to the chapter that defines it.
-:::
+Each term links to the chapter that defines or uses it first. Symbols are in
+[Notation](appendix-notation.qmd#sec-notation).
 
 | Term | Meaning |
 |---|---|
-| Lever | One of the four things a data technique can change: representation, sampling distribution $q$, weights $w$, labels |
-| Data card | The fixed-field record every technique gets; see [Notation](appendix-notation.qmd#sec-notation) |
-| Target distribution $p$ | The distribution the model will face |
-| Training distribution $q$ | The distribution training examples are drawn from |
+| Augmentation | Adding transformed copies of training examples; an assumption about how the transform acts on the label ([Augmentation](chapters/09-augmentation.qmd#sec-augmentation)) |
+| Back-transform bias | The bias from transforming a prediction made on a transformed scale (such as $\log y$) back to the original scale; also called retransformation bias ([Changing the Shape](chapters/06-changing-the-shape.qmd#sec-shape)) |
+| Bayes risk | The lowest error any predictor can reach on a distribution: the floor of a learning curve ([Learning Curves](chapters/11-learning-curves.qmd#sec-learning-curves)) |
+| Class-conditional noise | Label noise whose flip probability depends only on the true class ([Labels](chapters/02-labels.qmd#sec-labels)) |
+| Complete-case analysis | Dropping every row with a missing value ([Cleaning](chapters/04-cleaning.qmd#sec-cleaning)) |
+| Concept shift | A change in $p(y \mid x)$ between training and deployment, invisible to tests on inputs alone ([Distribution Shift](chapters/10-distribution-shift.qmd#sec-shift)) |
+| Confident learning | Finding likely label errors by comparing given labels with out-of-sample predicted probabilities ([Labels](chapters/02-labels.qmd#sec-labels)) |
+| Covariate shift | A change in $p(x)$ with $p(y \mid x)$ fixed ([Distribution Shift](chapters/10-distribution-shift.qmd#sec-shift)) |
+| Coverage-driven selection | Labeling only examples that cover cases not yet covered ([Why Power Laws](chapters/13-why-power-laws.qmd#sec-long-tail)) |
+| Cross-fitting | Computing a fitted feature for each row from a model that did not see that row ([Encoding and Features](chapters/07-encoding-and-features.qmd#sec-encoding)) |
+| Data card | The fixed-field record every technique gets: lever, assumption, effect, fit on, failure modes, alternatives, and the test that checks it ([The Map](chapters/00-the-map.qmd#sec-map)) |
+| Data-generating process | The population, the selection and the measurement that together produce a dataset ([The Data-Generating Process](chapters/01-the-data-generating-process.qmd#sec-dgp)) |
+| Deduplication | Removing exact or near copies, within a training set or across a split ([Choosing Data](chapters/14-choosing-data.qmd#sec-choosing-data)) |
+| Density ratio | $p(x)/q(x)$, the weight that corrects covariate shift ([Sampling and Weighting](chapters/08-sampling-and-weighting.qmd#sec-sampling)) |
+| Effective sample size | The number of unweighted examples a weighted sample is worth; it falls as weights grow uneven ([Sampling and Weighting](chapters/08-sampling-and-weighting.qmd#sec-sampling)) |
+| Entropy rate | The lowest cross-entropy per token any model of a source can reach ([Scaling Laws](chapters/12-scaling-laws.qmd#sec-scaling-laws)) |
+| Evaluation only | A technique that changes what is measured, not what is learned: splits, leakage control, shift detection ([The Map](chapters/00-the-map.qmd#sec-map)) |
+| Importance weighting | Weighting training examples by the density ratio to target $p$ ([Sampling and Weighting](chapters/08-sampling-and-weighting.qmd#sec-sampling)) |
+| Invariance | A transform that leaves the label unchanged: $p(y \mid T(x)) = p(y \mid x)$ ([Augmentation](chapters/09-augmentation.qmd#sec-augmentation)) |
+| Leakage | Information at training or evaluation time that will not be available at prediction time ([Cleaning](chapters/04-cleaning.qmd#sec-cleaning)) |
+| Learning curve | Expected test error as a function of the number of training examples ([Learning Curves](chapters/11-learning-curves.qmd#sec-learning-curves)) |
+| Lever | One of the four things a data technique can change: representation, sampling distribution $q$, weights $w$, labels ([The Map](chapters/00-the-map.qmd#sec-map)) |
+| Long tail | Many individually rare cases whose total probability is large ([Why Power Laws](chapters/13-why-power-laws.qmd#sec-long-tail)) |
+| MCAR, MAR, MNAR | Missing completely at random; at random given observed values; not at random ([Cleaning](chapters/04-cleaning.qmd#sec-cleaning)) |
+| Memorizing learner | A learner that is right on every case it has seen and wrong on every other: Hutter's model ([Why Power Laws](chapters/13-why-power-laws.qmd#sec-long-tail)) |
+| Model collapse | Loss of a distribution's tail when models are trained on their predecessors' output ([Choosing Data](chapters/14-choosing-data.qmd#sec-choosing-data)) |
+| Prior shift | A change in the class prior $p(y)$ with $p(x \mid y)$ fixed ([Sampling and Weighting](chapters/08-sampling-and-weighting.qmd#sec-sampling)) |
+| Representation | How inputs and targets are encoded and transformed before the model sees them ([The Map](chapters/00-the-map.qmd#sec-map)) |
+| Sampling distribution $q$ | The distribution training examples are drawn from ([The Data-Generating Process](chapters/01-the-data-generating-process.qmd#sec-dgp)) |
+| Scaling law | An empirical power law relating loss to data, model size or compute ([Scaling Laws](chapters/12-scaling-laws.qmd#sec-scaling-laws)) |
+| Selection on $x$, on $y$ | A selection rule that depends only on the inputs leaves $p(y \mid x)$ unchanged for a correctly specified model; one that depends on the target biases it ([The Data-Generating Process](chapters/01-the-data-generating-process.qmd#sec-dgp)) |
+| Smearing | Correcting a back-transformed prediction by the mean of the back-transformed residuals ([Changing the Shape](chapters/06-changing-the-shape.qmd#sec-shape)) |
+| SMOTE | Oversampling a minority class by interpolating between neighboring minority examples ([Sampling and Weighting](chapters/08-sampling-and-weighting.qmd#sec-sampling)) |
+| Stratified sampling | Sampling separately within known groups ([The Data-Generating Process](chapters/01-the-data-generating-process.qmd#sec-dgp)) |
+| Target distribution $p$ | The distribution the model will face at deployment ([The Data-Generating Process](chapters/01-the-data-generating-process.qmd#sec-dgp)) |
+| Target encoding | Replacing a category by a statistic of the target within it ([Encoding and Features](chapters/07-encoding-and-features.qmd#sec-encoding)) |
+| Uncertainty sampling | Active learning that labels the example whose predicted probability is nearest 1/2 ([Choosing Data](chapters/14-choosing-data.qmd#sec-choosing-data)) |

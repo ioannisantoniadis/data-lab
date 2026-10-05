@@ -91,16 +91,20 @@ $$
 where $E_M$ is the uniform learning curve at the pool size (checked by
 `::test_pool_selector_is_bounded_by_unseen_pool_mass`). Two consequences follow.
 
-- **A pool proportional to the budget**, $M = c\,n$, leaves $E_M \propto n^{-\alpha/(1+\alpha)}$:
-  a constant-factor gain over uniform sampling, and no steeper exponent. Measured at
-  $\alpha = 1$: slope $-0.49$ to $-0.51$ over ten independent sets of seeds
-  (`::test_linear_pool_keeps_the_uniform_exponent`).
+- **A pool proportional to the budget**, $M = c\,n$, leaves $E_M \propto n^{-\alpha/(1+\alpha)}$
+  against the budget: a constant-factor gain over uniform sampling, and no steeper exponent.
+  Measured at $\alpha = 1$: slope $-0.49$ to $-0.51$ over ten independent sets of seeds
+  (`::test_linear_pool_keeps_the_uniform_exponent`). The budget is mostly unspent: such a
+  pool holds about $\mathbb{E}[D_M] \approx \Gamma(\beta)(AM)^{1/s}$ distinct features, fewer
+  than $n$ for large $n$, and the selector labels them all. Against the labels it actually
+  uses, it is the deduplicated stream after $M$ draws
+  (`::test_small_pool_cannot_spend_its_budget`).
 - **The oracle's exponent needs $E_M \lesssim n^{-\alpha}$,** that is, a pool growing like
   $M \gtrsim n^{1+\alpha}$. With $M = n^2$ at $\alpha = 1$ the selector's slope was $-0.99$ to
   $-1.01$ over the same ten sets of seeds, at about 1.5 times the oracle's error
   (`::test_superlinear_pool_approaches_the_oracle_exponent`).
 
-![Panel A: exact expected error of the memorizing learner under uniform sampling for three Zipf exponents, with Monte Carlo means (200 seeds, circles) and the asymptote $c\,n^{-\alpha/(1+\alpha)}$ (dashed). Panel B, at $\alpha = 1$, error against labels used: uniform sampling labeling every draw, the same stream labeling only cases not seen before, and the oracle coverage selector, the lower bound for any $n$ labels (all exact); and a selector that ranks cases by their count in an unlabeled pool of $M$ draws (median and 10–90% band). The tail sets the power law; skipping repeats steepens it per label, frequency order adds only a constant, and the steeper slope costs an unlabeled stream or pool growing like $n^{1+\alpha}$.](images/long_tail_signature.png){#fig-long-tail-signature}
+![Panel A: exact expected error of the memorizing learner under uniform sampling for three Zipf exponents, with Monte Carlo means (200 seeds, circles) and the asymptote $c\,n^{-\alpha/(1+\alpha)}$ (dashed). Panel B, at $\alpha = 1$, error against labels used: uniform sampling labeling every draw, the same stream labeling only cases not seen before, and the oracle coverage selector, the lower bound for any $n$ labels (all exact); and a selector that ranks cases by their count in an unlabeled pool of $M$ draws, plotted at the labels it actually used (median and 10–90% band); pools too small to fill the budget fall on the new-cases curve. The tail sets the power law; skipping repeats steepens it per label, frequency order adds only a constant, and the steeper slope costs an unlabeled stream or pool growing like $n^{1+\alpha}$.](images/long_tail_signature.png){#fig-long-tail-signature}
 
 @fig-long-tail-signature is the book's signature figure. It shows the argument of
 [Why Power Laws: The Long Tail](chapters/13-why-power-laws.qmd#sec-long-tail). Dohmatob et al.

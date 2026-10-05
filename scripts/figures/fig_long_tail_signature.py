@@ -8,14 +8,16 @@ Panel B (alpha = 1): error against labels used. Uniform sampling labeling every 
 the same uniform stream labeling only features not seen before (exact curve (E[D_m], E_m));
 the oracle coverage selector that labels features 1..n (exact, the lower bound for any n
 labels); and a selector that knows nothing about p: it sees an unlabeled pool of M draws and
-labels the n distinct features counted most often. Pools of M = 10 n and 100 n, and
-M = n^2 = n^(1+alpha); median and 10-90% band over seeds.
+labels the n distinct features counted most often (budget n). Pools of M = 10 n and 100 n,
+and M = n^2 = n^(1+alpha); median and 10-90% band over seeds, plotted at the labels actually
+used: a pool with fewer distinct features than the budget labels them all and no more.
 
 This figure makes visible that uniform sampling's error falls as a power law set by the tail
 (slope -alpha/(1+alpha)); that per label, not paying for repeats is what steepens it to
 -alpha, with frequency ordering adding only a constant factor; and that the steeper slope is
-never an escape from a power law, and costs about n^(1+alpha) draws: a pool proportional to n
-only shifts the uniform line down.
+never an escape from a power law, and costs about n^(1+alpha) draws; and that a pool too small
+to fill the budget is the deduplicated stream again, while a pool of n^(1+alpha) draws moves
+toward the oracle.
 
 Also publishes the chapter's quoted numbers (namespace "ch13") to docs/_variables.yml.
 
@@ -109,25 +111,24 @@ pools = [
     ("pool $M = 100\\,n$", lambda n: 100 * n, 40, (0, (5, 2))),
     ("pool $M = n^2$", lambda n: n * n, 12, "-"),
 ]
-pool_end = {}
 for label, size, seeds, style in pools:
     rng = np.random.default_rng(SEED + seeds)
-    runs = np.array(
-        [
-            [stream.memorizer_error(pool_selector(stream, n, size(n), rng)) for n in ns]
-            for _ in range(seeds)
-        ]
-    )
+    picks = [[pool_selector(stream, n, size(n), rng) for n in ns] for _ in range(seeds)]
+    runs = np.array([[stream.memorizer_error(x) for x in row] for row in picks])
+    # A pool with fewer distinct cases than the budget labels all of them and no more, so each
+    # point is plotted at the labels actually used (mean over seeds), not at the budget n.
+    used = np.array([[len(x) for x in row] for row in picks]).mean(axis=0)
     lo, med, hi = np.percentile(runs, [10, 50, 90], axis=0)
-    ax_b.fill_between(ns, lo, hi, color=LEVER_COLOR["q"], alpha=0.15, lw=0)
-    ax_b.loglog(ns, med, color=LEVER_COLOR["q"], lw=2.0, ls=style, marker="o", ms=4)
-    pool_end[label] = med[-1]
+    ax_b.fill_between(used, lo, hi, color=LEVER_COLOR["q"], alpha=0.15, lw=0)
+    ax_b.loglog(used, med, color=LEVER_COLOR["q"], lw=2.0, ls=style, marker="o", ms=4,
+                label=label)
+ax_b.legend(loc="lower left", fontsize=9, title="selector ranking an unlabeled pool",
+            title_fontsize=8.5)
 
 labels = {
     "uniform, every draw labeled": uniform[-1],
     "uniform, new cases only": dedup[-1],
     "oracle: features $1..n$": oracle[-1],
-    **pool_end,
 }
 # Spread end labels at least a factor GAP apart in y (log axis), keeping their order.
 GAP = 1.55
@@ -149,7 +150,7 @@ ax_b.loglog([x0, x1], [0.45 * oracle[0], 0.45 * oracle[0] * (x1 / x0) ** -1.0],
             color=MUTED, lw=0.8)
 ax_b.annotate("slope $-1$", xy=(x0 * 1.2, 0.45 * oracle[0] / 1.2), xytext=(0, -14),
               textcoords="offset points", fontsize=9, color=INK_SECONDARY)
-ax_b.set_xlim(ns[0] * 0.8, ns[-1] * 9)
+ax_b.set_xlim(10, ns[-1] * 9)
 ax_b.set_xlabel("labels used $n$")
 ax_b.set_ylabel(r"expected test error ($\alpha = 1$)")
 ax_b.set_title("B. Skipping repeats steepens it, at a price")
@@ -195,6 +196,9 @@ publish("ch13", {
     "linear_pool_slope": fmt(lin, 2),
     "quad_pool_slope": fmt(quad, 2),
     "quad_over_oracle": fmt(quad_1000 / float(s1.tail_mass(1_000)), 2),
+    "linear_pool_used_1000": fmt(np.mean([len(pool_selector(s1, 1_000, 10_000,
+                                                             np.random.default_rng(16_300 + k)))
+                                          for k in range(20)]), 0),
     "uniform_err_1000": fmt(s1.expected_error(1_000).mid, 4),
     "oracle_err_1000": fmt(float(s1.tail_mass(1_000)), 5),
 })

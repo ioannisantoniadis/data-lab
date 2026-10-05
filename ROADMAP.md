@@ -175,7 +175,7 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 - Restate claims 2 and 9 as in the tests; add claims 22–35 to §8.
 - The tokenizer pointer stays dropped; chapter 3 says no sibling covers it.
 
-## Phase 3: Parts III and IV (2026-10-05): drafted, at ⛳ Gate 3
+## Phase 3: Parts III and IV (2026-10-05): done; ⛳ Gate 3 passed 2026-10-05 (DECISIONS D10)
 
 - [x] Gate 2 passed 2026-10-05 (the owner read chapters 1–7: "looks good ... move on").
 - [x] Chapters 8–14 written to the template, each researched first (research-log.md,
@@ -231,9 +231,44 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 - §9, signature figure Panel B: error against labels used, with the exact
   "uniform, new cases only" curve (already applied, as a correctness fix).
 
-## Phase 4: synthesis and release: planned
+## Phase 4: synthesis and release (2026-10-05): in progress
 
-Chapter 15, the Map, the appendices, the final audit, the success tests. Publication per D5.
+- [x] Phases 2 and 3 committed locally (d0959e8), not pushed (D10).
+- [x] Chapter 15, *A Data Decision Guide*: a four-step procedure (deployment question →
+      representation → training distribution → enough data), each step checked against a
+      baseline, and two worked examples computed on T1 and T5 (claims 44–46; one figure; one
+      new card, per-recording normalization; 38 cards in the generated table).
+- [x] The Map: the four levers and evaluation, the SPEC §1 questions with short answers and
+      where each is answered, how the book argues, reading paths.
+- [x] Appendices: the glossary (37 terms, each linked to its chapter); Further Reading (only
+      sources read for the book); What the Toys Cannot Show (generated from the chapters).
+- [x] Front page: "How this book was made" (D0), with roles and the model version.
+- [x] COVERAGE.md: every item ticked.
+- [x] Final fresh-agent `learning-repo-audit` (SPEC §15), 2026-10-05:
+      [`audits/2026-10-05-final-audit.md`](audits/2026-10-05-final-audit.md). Scores 5, 5, 4, 5,
+      4, 5, 4, 4, 5 (≥ 4 everywhere, 5 on computed evidence); no hard fails or blockers. All
+      figures, numbers and includes reproduced byte-identically. One major finding (Panel B
+      plotted small pools at an unspent budget) and five minor ones fixed the same day; CI on
+      GitHub (m6) is the owner's call.
+- [ ] Success tests (SPEC §14): the decision and "how much data" tests need 3–5 human
+      readers; the expert read needs D4. None can be run by the agent.
+- [ ] Publication: D5.
+
+### What Phase 4 found
+
+1. **The worked examples surfaced an interaction.** Regression imputation and smearing are
+   each sound, and together bias the total upward (+3.8%): the imputed values carry no noise,
+   so their error lands in the residuals the smearing factor averages. Mean imputation shrinks
+   the coefficients instead. Both mechanisms are tested.
+2. **The Map answers the SPEC §1 question "How smarter data selection can beat that law"
+   with "it cannot, only steepen it per label"** (D10), and says so.
+3. **The final audit caught a real error in the signature figure.** A pool of $M = 10n$ draws
+   holds only about 138 distinct cases at $n = 1{,}000$, so its selector never spends the
+   budget; plotted at the labels it actually uses, it lies on the deduplicated stream's curve.
+   The per-label story holds and is now simpler: what any selector reading a uniform stream
+   buys per label is skipping repeats, plus at most the ordering constant.
+4. **Notation slip caught:** chapter 15's first draft used bare σ for a standard deviation;
+   the book reserves it for the sigmoid (now σ_ε).
 
 ## Durations
 
@@ -242,7 +277,8 @@ Chapter 15, the Map, the appendices, the final audit, the success tests. Publica
 | 0 | 2026-10-04 | 2026-10-04 |
 | 1 | 2026-10-04 | 2026-10-04 |
 | 2 | 2026-10-04 | 2026-10-05 |
-| 3 | 2026-10-05 | (Gate 3 pending) |
+| 3 | 2026-10-05 | 2026-10-05 |
+| 4 | 2026-10-05 | (in progress) |
 
 ## Decision log
 

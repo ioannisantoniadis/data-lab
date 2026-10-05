@@ -56,9 +56,9 @@ fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(11.5, 4.3),
                                  gridspec_kw={"width_ratios": [1.3, 1]})
 ax_a.semilogx(sizes, losses, "o", color=INK, ms=5, label="bigram model (exact, 10 seeds)")
 ax_a.semilogx(grid, power_law(grid, *pure), color=LEVER_COLOR["representation"],
-              ls=(0, (5, 2)), label=r"fit $A D^{-\alpha}$ (no floor)")
+              ls=(0, (5, 2)), label=r"fit $A\,D^{-\alpha_D}$ (no floor)")
 ax_a.semilogx(grid, power_law_with_floor(grid, *floor), color=LEVER_COLOR["representation"],
-              ls=(0, (1, 1.5)), label=r"fit $E + A D^{-\alpha}$")
+              ls=(0, (1, 1.5)), label=r"fit $E + A\,D^{-\alpha_D}$")
 ax_a.axhline(h, color=INK, lw=1)
 ax_a.annotate("entropy rate (irreducible)", xy=(1e6, h), xytext=(-4, -12),
               textcoords="offset points", ha="right", fontsize=9, color=INK_SECONDARY)

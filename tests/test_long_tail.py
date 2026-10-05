@@ -145,7 +145,8 @@ def test_pool_selector_is_bounded_by_unseen_pool_mass():
 
 def test_linear_pool_keeps_the_uniform_exponent():
     """With a pool proportional to the budget (M = 10 n), the selector's error tracks E_{10n}:
-    a constant-factor gain over uniform sampling, with uniform's exponent (-1/2 at alpha = 1)."""
+    against the budget (and so against draws), a constant-factor gain over uniform sampling,
+    with uniform's exponent (-1/2 at alpha = 1)."""
     stream = ZipfStream(1.0)
     means = {}
     for n in (100, 1_000):
@@ -242,6 +243,22 @@ def test_deduplicated_stream_exact_curve_matches_simulation():
     m, err = at_labels(stream, [1_000])
     assert np.mean([stream.memorizer_error(x) for x, _ in runs]) == pytest.approx(err[0], rel=0.02)
     assert np.mean([d for _, d in runs]) == pytest.approx(m[0], rel=0.02)
+
+
+def test_linear_pool_leaves_its_budget_unspent():
+    """At M = 10 n and n = 1,000 (alpha = 1) the pool holds about E[D_M] distinct features, under
+    a fifth of the budget; the selector labels all of them, so its error is E_M and equals the
+    deduplicated stream's at the labels it actually used (within 4 standard errors)."""
+    stream = ZipfStream(1.0)
+    picks = [pool_selector(stream, 1_000, 10_000, np.random.default_rng(13_800 + s))
+             for s in range(40)]
+    used = np.array([len(x) for x in picks])
+    errors = np.array([stream.memorizer_error(x) for x in picks])
+    se = errors.std(ddof=1) / np.sqrt(len(errors))
+    assert used.mean() < 200
+    used_se = used.std(ddof=1) / np.sqrt(len(used))
+    assert abs(used.mean() - stream.expected_distinct(10_000).mid) < 4 * used_se
+    assert abs(errors.mean() - stream.expected_error(10_000).mid) < 4 * se
 
 
 def test_small_pool_cannot_spend_its_budget():

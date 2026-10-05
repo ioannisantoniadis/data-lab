@@ -14,9 +14,9 @@ diminish. The book is a sibling of
 and [optimization-lab](https://github.com/ioannisantoniadis/optimization-lab) (how to optimize).
 This book covers what the model is optimized *on*.
 
-**Status:** Phases 0–2 done; Phase 3 (Parts III and IV, chapters 8–14) drafted and at Gate 3,
-2026-10-05. Chapters 0 and 15 are stubs. Private; no site is deployed. **License:** MIT. **Authors:** Ioannis
-Antoniadis, with Claude (Anthropic).
+**Status:** Phases 0–3 done; Phase 4 (synthesis) drafted, 2026-10-05: every chapter and
+appendix is written; the final audit and the reader tests are pending. Private; no site is
+deployed. **License:** MIT. **Authors:** Ioannis Antoniadis, with Claude (Anthropic).
 
 ## What this book adds
 
@@ -45,10 +45,12 @@ connects it to the levers.
 | [`COVERAGE.md`](COVERAGE.md) | Every coverage item, with its depth and chapter |
 | [`research-log.md`](research-log.md) | Every source consulted, and to what depth |
 | [`review.md`](review.md) | The `skeptical-review` of the thesis (Phase 0) |
-| `docs/` | The Quarto book (chapters 1–7 written, the rest stubs; 5 appendices) |
-| `src/data_lab/` | The local package: testbeds T1–T5, sampling, labels, cleaning, transforms |
-| `tests/` | One test per checkable claim (claims 1–35; Part III–IV claims still stubs), plus tooling tests |
-| `scripts/technique_data.py` | Records that generate every data card and the decision guide |
+| [`audits/`](audits/) | Fresh-agent audits and the chapter 13 review, each with its resolution |
+| `docs/` | The Quarto book: the Map, 15 chapters, 5 appendices |
+| `src/data_lab/` | The local package: testbeds T1–T5 and one module per topic (sampling, labels, cleaning, transforms, augment, shift, curves, scaling, selection, worked examples) |
+| `tests/` | One test per checkable claim (SPEC §8, claims 1–46), plus tooling tests |
+| `docs/_variables.yml` | Every number quoted in the prose, written by the figure scripts |
+| `scripts/technique_data.py` | Records that generate every data card, the decision guide and the toy-limits appendix |
 | `scripts/figures/` | One script per figure, and the shared theme with `save_figure` |
 | `scripts/word_count.py` | Prose word count; CI fails above the 35,000-word cap |
 | `scripts/check_portability.py` | Portability rules for a future PDF |
@@ -61,7 +63,7 @@ uv run ruff check .
 uv run pytest
 uv run python scripts/word_count.py
 uv run python scripts/check_portability.py
-uv run python scripts/technique_data.py   # regenerate cards and the decision guide
+uv run python scripts/technique_data.py   # regenerate cards, the guide and the toy limits
 quarto render docs                        # Quarto CLI installed separately
 ```
 

@@ -101,9 +101,10 @@ Counts are raw words (`wc -w`) in `docs/**/*.qmd`, measured 2026-10-04. Counted 
 > dimension, and the probability mass in rare but necessary cases. Where learning is
 > memorization-like and inputs are long-tailed, the last of these dominates: error is the mass
 > of what has not yet been covered. Uniform sampling reaches that mass slowly, because most
-> draws repeat what is already covered. A selector that targets the uncovered steepens the
-> power law, but only with an oracle for what is covered; real selection methods approximate
-> that oracle, with mixed results at scale. Other accounts (data-manifold dimension;
+> draws repeat what is already covered. Per label, a selector that only skips what is
+> already covered steepens the power law, still a power law; per example drawn, nothing does
+> better than uniform sampling (restated at Gate 3, D10). Real selection methods must also
+> recognize what is covered, with mixed results at scale. Other accounts (data-manifold dimension;
 > variance- vs. resolution-limited regimes) explain power laws without a long tail, and the
 > book presents them alongside.
 
@@ -445,7 +446,7 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
     (§7): the oracle reaches n^−α against uniform's n^−α/(1+α), still a power law. A selector
     that knows nothing about p and labels the most frequent features of an unlabeled pool of M
     draws has expected error at least max(oracle at n, E_M). With M ∝ n it keeps uniform's
-    exponent; with M = n^(1+α) it recovers the oracle's (D8). Labeling only new features from a
+    exponent against the budget, and labels fewer than n cases (its error is E_M); with M = n^(1+α) it recovers the oracle's (D8). Labeling only new features from a
     uniform stream reaches −α per label at β Γ(β)^(1+α) times the oracle's error, after about
     n^(1+α) draws; no n labels beat the oracle (restated at Gate 3, D10).
 17. On T3, keeping hard examples beats keeping easy ones when initial data is abundant, and the
@@ -497,8 +498,16 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
     nothing measurable when labels are noisy (a 20-seed pilot suggested harm; 60 seeds did not
     confirm it).
 
-Claims 22-35 were added in Phase 2 for chapters 1-7 (D9), and 36-43 in Phase 3 for chapters
-8-14 (D10); the exact thresholds are in each test's docstring.
+44. Worked example (tabular): for the mean of a log-normal cost, the plain back-transform is
+    low by about exp(−σ_ε²/2) − 1; smearing with complete cases (missingness at random on an
+    observed field) is unbiased; mean imputation is not.
+45. Regression imputation inflates the smearing factor, biasing the total upward.
+46. Worked example (audio): a recording-gain shift costs a log-spectrum classifier accuracy at
+    small n; per-recording centering and gain augmentation each remove the loss.
+
+Claims 22-35 were added in Phase 2 for chapters 1-7 (D9), 36-43 in Phase 3 for chapters 8-14
+(D10), and 44-46 in Phase 4 for chapter 15; the exact thresholds are in each test's
+docstring.
 
 ## 9. Figures
 

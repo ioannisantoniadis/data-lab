@@ -30,7 +30,8 @@ the model see? When does choosing beat drawing at random, and when does it do ha
 **Pruning by difficulty (replicated finding with conditions; the crossover is from one theory
 paper, 2022).** Sorscher et al. analyze pruning in the teacher–student perceptron, the setting
 of T3. Their result: "with abundant (scarce) data", retain only hard (easy) examples, and with
-an increasing pruning fraction error can fall faster than a power law [@sorscher2022beyond].
+an increasing pruning fraction error can fall faster than a power law, given "a high-quality
+data pruning metric" [@sorscher2022beyond, abstract].
 On T3 with 100 dimensions, keeping half the examples by their true margin:
 
 - **scarce data** ($P/N = 1$): keeping the easiest half gave test error {{< var ch14.easy_scarce >}},

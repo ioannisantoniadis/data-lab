@@ -77,7 +77,9 @@ a simulation that stops at exactly 1,000 labels agrees within 2%,
 exponent; knowing the frequency order adds only a constant.
 
 **What it costs.** The gain is per label, not per draw. Reaching 1,000 labels this way took
-{{< var ch13.dedup_draws_1000 >}} draws at $\alpha = 1$, and in general about $n^{1+\alpha}$
+{{< var ch13.dedup_draws_1000 >}} draws at $\alpha = 1$, close to the asymptotic count
+$(n/\Gamma(\beta))^{1+\alpha}\,\zeta(1+\alpha)$ derived in
+[The Testbeds](../appendix-testbeds.qmd#sec-testbed-t2), which grows as $n^{1+\alpha}$
 (`::test_deduplicated_stream_pays_n_to_the_one_plus_alpha_draws`). Per draw, the error is still
 $E_m$: nothing that reads a uniform stream does better than $m^{-\alpha/(1+\alpha)}$ per example
 drawn. Coverage-driven selection pays off when labels (or training steps) are expensive and
@@ -105,14 +107,19 @@ ranks cases by how often they appear in it (ties broken at random), and labels t
 cannot label a case absent from the pool, so its expected error is at least the larger of the
 oracle's and the uniform error at the pool size, $E_M$. This is the tail cut that Dohmatob et al.
 derive for a finite sample on the same model: $T_0$ draws cut the tail near the case of
-probability $1/T_0$ [@dohmatob2024tale, eq. 6 and Cor. 2.2]. With $M = n$ the pool has at most
-$n$ distinct cases, the budget is never spent, and the error is exactly $E_n$
-(`::test_small_pool_cannot_spend_its_budget`). With $M = 10n$, the slope was
-{{< var ch13.linear_pool_slope >}}: uniform sampling's exponent, shifted down by a constant.
-With $M = n^{1+\alpha}$ it was {{< var ch13.quad_pool_slope >}}, the oracle's exponent, at
-{{< var ch13.quad_over_oracle >}} times the oracle's error
-(`::test_linear_pool_keeps_the_uniform_exponent`,
-`::test_superlinear_pool_approaches_the_oracle_exponent`).
+probability $1/T_0$ [@dohmatob2024tale, eq. 6 and Cor. 2.2]. A pool often holds fewer distinct
+cases than the budget. With $M = 10n$ and a budget of 1,000 labels, it held
+{{< var ch13.linear_pool_used_1000 >}} on average; the selector labels them all, and its error
+is $E_M$ exactly, the deduplicated stream after $M$ draws
+(`::test_small_pool_cannot_spend_its_budget`). Measured against the budget, and so against the
+draws, its slope was {{< var ch13.linear_pool_slope >}}, uniform sampling's exponent
+(`::test_linear_pool_keeps_the_uniform_exponent`). Measured against the labels it used, it
+lies on the deduplicated stream's curve (@fig-long-tail-chapter, panel B). Only a pool large
+enough to hold more than $n$ distinct cases, about $n^{1+\alpha}$ draws, spends the budget and
+lets the ranking count: with $M = n^{1+\alpha}$ the slope was {{< var ch13.quad_pool_slope >}},
+at {{< var ch13.quad_over_oracle >}} times the oracle's error, against
+{{< var ch13.dedup_over_oracle >}} for the deduplicated stream
+(`::test_superlinear_pool_approaches_the_oracle_exponent`).
 
 **Other accounts, and their scope.** The long tail is one explanation of power-law scaling, not
 the only one:
@@ -151,7 +158,7 @@ the curve, but only by changing which cases are covered, and only per label.
 
 ## Failure modes
 
-![Panel A: exact expected error of the memorizing learner under uniform sampling for three Zipf exponents, with Monte Carlo means and the asymptote $c\,n^{-\alpha/(1+\alpha)}$. Panel B, at $\alpha = 1$, error against labels used: uniform sampling labeling every draw, the same stream labeling only cases not seen before, and the oracle coverage selector, the lower bound for any $n$ labels (all exact); and a selector that ranks cases by their count in an unlabeled pool of $M$ draws (median and 10–90% band). The tail sets the power law; skipping repeats steepens it per label, frequency order adds only a constant, and the steeper slope costs an unlabeled stream or pool growing like $n^{1+\alpha}$.](../images/long_tail_signature.png){#fig-long-tail-chapter}
+![Panel A: exact expected error of the memorizing learner under uniform sampling for three Zipf exponents, with Monte Carlo means and the asymptote $c\,n^{-\alpha/(1+\alpha)}$. Panel B, at $\alpha = 1$, error against labels used: uniform sampling labeling every draw, the same stream labeling only cases not seen before, and the oracle coverage selector, the lower bound for any $n$ labels (all exact); and a selector that ranks cases by their count in an unlabeled pool of $M$ draws, plotted at the labels it actually used (median and 10–90% band); pools too small to fill the budget fall on the new-cases curve. The tail sets the power law; skipping repeats steepens it per label, frequency order adds only a constant, and the steeper slope costs an unlabeled stream or pool growing like $n^{1+\alpha}$.](../images/long_tail_signature.png){#fig-long-tail-chapter}
 
 @fig-long-tail-chapter is the book's signature figure. The failure modes it implies:
 
@@ -159,8 +166,8 @@ the curve, but only by changing which cases are covered, and only per label.
   exponent per label, never below the tail mass beyond what was labeled.
 - **Counting labels, forgetting draws.** The steeper curve per label costs about
   $n^{1+\alpha}$ draws; per draw, nothing beats uniform sampling's exponent.
-- **Selecting from a small pool.** A pool proportional to the budget gives a constant factor,
-  not a steeper curve; a pool no larger than the budget gives nothing.
+- **Selecting from a small pool.** A pool with fewer distinct cases than the budget cannot
+  spend it: its error is that of the pool, $E_M$, whatever the budget.
 - **Mistaking redundancy for the cause.** Redundancy slows uniform sampling; the tail makes the
   curve a power law. Remove all redundancy and the tail remains.
 - **Losing the tail.** Training on data whose tail has been cut off, for example generated by a

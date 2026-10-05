@@ -325,3 +325,37 @@ book quotes from a source is from the depth stated here.
 - **Deduplication (claim 17).** "Below the entropy rate" was not a reliable signature on T4;
   restated as optimism of more than 0.3 nats removed by deduplication.
 - **SMOTE.** It fills the gap between minority clusters only when k exceeds the cluster size.
+
+## 2026-10-05: Phase 4 (synthesis)
+
+### Sources read in Phase 4
+
+| Source | Where read | Depth | What was checked | Used in |
+|---|---|---|---|---|
+| `rl-for-llms/docs/chapters/00-map.qmd` (sibling, not modified) | local file | passage (the lens table) | $q$ is the "data regime" and $w$ the "estimator and weight" row; the published page is `chapters/00-map.html` | The Map |
+| `objectives-book/SPEC.md` §13 item 10 and DECISIONS D10 (sibling, not modified) | local files | passage | "How this book was made": who did what, and model versions | Front page (D0) |
+| This repository's commit trailers | `git log` | full | Every commit names Claude Opus 5.5 | Front page |
+
+### Derived or measured in Phase 4, not from a source
+
+- **The worked examples** (chapter 15, `src/data_lab/worked.py`, claims 44–46). Measured
+  mechanisms, checked in tests: mean imputation shrinks the fitted coefficients (0.693 against
+  a true 0.8 on the first feature); regression imputation keeps them within 0.01 but its
+  smearing factor is 1.422 against a true exp(σ_ε²/2) = 1.377, because the imputed values
+  carry no noise. A gain $g$ adds exactly $\log g$ to every bin of `log_power_spectrum` (the log
+  of the time-averaged STFT magnitude), so per-recording centering removes it exactly.
+
+### Decisions made in Phase 4
+
+- **Settles 2012 removed** from the bibliography: it was never read beyond its metadata, and
+  Further Reading lists only sources read for the book; the 2009 survey, read at passage
+  depth, is listed instead.
+- **The toy-limits appendix is generated** from each chapter's "What the toy cannot show"
+  section by `scripts/technique_data.py`, so it cannot drift from the chapters.
+
+### Sources checked for the final audit's findings
+
+| Source | Where read | Depth | What was checked | Used in |
+|---|---|---|---|---|
+| Shimodaira 2000, J. Statistical Planning and Inference 90(2):227–244 (10.1016/s0378-3758(00)00115-4) | Crossref; Semantic Scholar and OpenAlex (closed access, abstract elided by the publisher) | bib only | Title, authors, venue. **Content not read**; the chapter 8 Lineage callout claims only what the title states and says so | Ch. 8 (final audit m4) |
+| scikit-learn 1.9.1 `TfidfVectorizer` | the installed library | default checked by running it | `token_pattern = '(?u)\b\w\w+\b'`: two or more Unicode word characters, underscore included | Ch. 7 (final audit polish) |

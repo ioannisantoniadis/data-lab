@@ -83,6 +83,7 @@ place where this book departs from them, and why.
 |---|---|
 | $\lambda$ | the Box-Cox / Yeo-Johnson power parameter |
 | $\sigma_\varepsilon$ | the noise standard deviation (for example of $\log y$ under log-normal noise) |
+| $g$ | a recording gain, multiplying a whole waveform ([A Data Decision Guide](chapters/15-decision-guide.qmd#sec-decision-guide)) |
 | $F_j$ | the cumulative distribution function of feature $j$ |
 | $\Phi$ | the standard normal cumulative distribution function |
 
@@ -107,6 +108,7 @@ All logarithms are natural.
   and in T2 the feature distribution *is* the target distribution $p$, which makes the
   comparison of $q$ with $p$ direct (as in Dohmatob et al. 2024, who also write $p_i$ and
   $q_i$).
+- **[Scaling Laws](chapters/12-scaling-laws.qmd#sec-scaling-laws) keeps the papers' symbols** ($D$ tokens, $N$ parameters; $E$, $A$, $B$, $\alpha$, $\beta$ as fitted by Hoffmann et al.; $\alpha_D$, $\alpha_N$ as in Kaplan et al.), so readers can match them to the sources; the chapter says so where they first appear.
 - **$\sigma$ is the sigmoid, as in the siblings**, so noise scale is $\sigma_\varepsilon$.
 - **$\beta$ is a learning-curve exponent here.** In rl-for-llms, $\beta$ is the KL strength;
   the two books never need both.

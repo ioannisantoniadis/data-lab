@@ -1,10 +1,38 @@
 # Further Reading {#sec-further-reading}
 
-::: {.callout-warning title="Stub"}
-Written in Phase 4. Entries are added only after the source has been read and logged in
-`research-log.md`.
-:::
+Each entry was read for this book at the depth logged in the repository's `research-log.md`;
+the note says what it is good for. Recent and contested results are in the chapters, with
+their dates.
 
-Books and courses found in the Phase 0 positioning search, with what each covers, are logged in
-the repository's `research-log.md`. Two references fill open items of the specification:
-@kuhn2019feature for feature engineering, and @settles2012active for active learning.
+## Data collection, labels and cleaning
+
+- @gebru2018datasheets: the questions a dataset's documentation should answer, from
+  motivation to maintenance.
+- @cetinkayarundel2024ims: an introductory statistics text with clear chapters on sampling
+  designs and observational data.
+- @northcutt2019confident: confident learning, with its assumptions stated.
+- @vanbuuren2018fimd: missing-data mechanisms and multiple imputation, in depth and free
+  online.
+- @kuhn2019feature: a practical book on encodings, transformations and feature selection
+  (read for its scope, not in full).
+
+## The training distribution
+
+- @saerens2002adjusting: adjusting a classifier's probabilities to new class priors, and
+  estimating those priors by EM.
+- @chawla2002smote: SMOTE, defined.
+- @morenotorres2012unifying: definitions of covariate, prior-probability and concept shift.
+
+## How much data, and which
+
+- @viering2021shape: a survey of learning-curve shapes, including the cases that are not power
+  laws.
+- @hutter2021learning: the exact model behind [Why Power Laws](chapters/13-why-power-laws.qmd#sec-long-tail).
+- @dohmatob2024tale: Hutter's model trained on a distribution with its tail cut, the theory of
+  model collapse on a long tail.
+- @michaud2023quantization: the quantization model, linking power-law frequencies of skills to
+  power-law scaling.
+- @hoffmann2022training and @muennighoff2023scaling: compute-optimal allocation, and what
+  repeated data is worth.
+- @sorscher2022beyond: when to keep hard examples and when easy ones, derived and measured.
+- @settles2009active: a survey of active learning, from uncertainty sampling onward.
