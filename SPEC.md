@@ -1,7 +1,7 @@
 # SPEC: data for learning, from first principles
 
-**Status:** v0.3, 2026-10-04 (revised at Gate 0, `DECISIONS.md` D7 and `review.md`; and at
-Gate 1, D8). Repo `data-lab`; title *What the Model Sees: Training
+**Status:** v0.5, 2026-10-05 (revised at Gate 0, `DECISIONS.md` D7 and `review.md`; at Gate 1,
+D8; at Gate 2, D9; at Gate 3, D10). Repo `data-lab`; title *What the Model Sees: Training
 Data from First Principles* (see [`DECISIONS.md`](DECISIONS.md)); license MIT. This file is the implementation contract for the agent that
 builds the book. Read it end to end before writing anything.
 
@@ -391,6 +391,13 @@ non-oracle selector that estimates coverage from counts, so the oracle's share o
 visible. Prior art: Dohmatob et al. (2024) analyze Hutter's model trained on q ≠ p, including
 tail cutting and acquiring the missing tail; chapter 13 cites it and checks against it.
 
+*Restated at Gate 3 (D10), from the chapter 13 review, verified exactly:* per label, the
+steeper exponent comes from never labeling a repeat, which needs no knowledge of p. A selector
+that labels each feature the first time it appears in a uniform stream reaches −α per label,
+at β Γ(β)^(1+α) times the oracle's error (π/2 at α = 1), after about n^(1+α) draws. Frequency
+order adds only that constant. Per draw, nothing that reads a uniform stream beats
+n^−α/(1+α).
+
 **Datasets.** Synthetic, or bundled with scikit-learn. Any external dataset needs an owner
 decision (⚑ D5), a license check, and must not be needed by CI.
 
@@ -402,8 +409,10 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
 
 1. Standard, min-max, max-abs and robust scaling leave sample skewness and kurtosis unchanged
    (affine invariance).
-2. A decision tree's predictions are unchanged by any strictly monotone transform of a
-   feature (given the same tie-breaking).
+2. A decision tree's predictions on its training points are unchanged by any strictly
+   increasing transform of a feature (given the same tie-breaking); on new points, affine
+   transforms change none and nonlinear ones change a few, because thresholds sit at midpoints
+   (restated at Gate 2, D9).
 3. k-NN predictions change under per-feature rescaling. Show a case where scaling flips the
    prediction.
 4. With MSE on log y, back-transforming the predictions estimates exp(E[log y ∣ x]). For
@@ -416,8 +425,10 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
    complete-case estimates of the mean are biased (T1, multi-seed).
 8. Target encoding without cross-fitting gives a pure-noise high-cardinality feature a large
    training score and no test advantage. Cross-fitting removes the gap.
-9. Fitting a scaler or imputer on train + test changes test metrics vs. fitting on train
-   only, in the direction of optimism, on a constructed case.
+9. Unsupervised steps (a scaler or imputer) fit on train + test change i.i.d. test accuracy by
+   under one point and not consistently upward; a supervised step (feature selection) fit
+   before cross-validation reports accuracy far above chance on pure-noise labels, and the same
+   step inside the folds reports chance (restated at Gate 2, D9: v0.1's claim was not supported).
 10. Training on resampled balanced data shifts the predicted probabilities. The prior-shift
     correction p(y ∣ x) ∝ q(y ∣ x) · p(y) / q(y) restores calibration (T1). (v0.1 wrote the
     priors as π_y, which conflicts with §11's "π for policies only".)
@@ -434,11 +445,14 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
     (§7): the oracle reaches n^−α against uniform's n^−α/(1+α), still a power law. A selector
     that knows nothing about p and labels the most frequent features of an unlabeled pool of M
     draws has expected error at least max(oracle at n, E_M). With M ∝ n it keeps uniform's
-    exponent; with M = n^(1+α) it recovers the oracle's (D8).
+    exponent; with M = n^(1+α) it recovers the oracle's (D8). Labeling only new features from a
+    uniform stream reaches −α per label at β Γ(β)^(1+α) times the oracle's error, after about
+    n^(1+α) draws; no n labels beat the oracle (restated at Gate 3, D10).
 17. On T3, keeping hard examples beats keeping easy ones when initial data is abundant, and the
     reverse when it is scarce (multi-seed; quote the number of seeds that show it).
 18. Removing duplicates from T4 lowers the measured test cross-entropy optimism caused by
-    train/test overlap.
+    train/test overlap (as tested: optimism above 0.3 nats with duplicates across the split,
+    within 0.15 nats of fresh text after deduplication; D10).
 19. A learning curve fitted on small n extrapolates to within its stated interval at larger n
     on T1, or the chapter reports that it does not.
 20. (Replace regime; checked against the rates of Dohmatob et al. 2024, and contrasted with
@@ -448,6 +462,43 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
 21. Per-feature rescaling changes the condition number of the least-squares Hessian
     (proportional to XᵀX), and standardization reduces it on a constructed T1 case (added at
     Gate 0: the bridge `optimization-lab` does not cover).
+22. Selection on x leaves p(y | x) unchanged; selection on y biases it; weighting by a known
+    1 / s(x, y) undoes either, slowly (T1).
+23. Proportional stratified sampling lowers the variance of the mean as sum_h W_h S_h^2 / S^2.
+24. Class-conditional noise gives the noisy posterior rho_0 + (1 - rho_0 - rho_1) eta(x) and
+    moves the decision boundary unless rho_0 = rho_1.
+25. Confident learning's precision rises with class separability.
+26. Shuffled cross-validation on an autocorrelated series understates the future error.
+27. A spectrogram makes random-phase tone classes linearly separable; the raw waveform does not.
+28. Train/test duplicates push a memorizing model's test score above the Bayes accuracy.
+29. RobustScaler keeps the inliers' spread under gross outliers; StandardScaler compresses it.
+30. QuantileTransformer maps values beyond the training range to the output bounds.
+31. Smearing fails, and its factor is unstable, when the log-scale noise depends on x.
+32. Ordinal codes impose an order a linear model cannot undo; one-hot codes do not.
+33. Feature hashing collides at the rate expected of a uniform hash.
+34. Splines and quantile bins let a linear model fit a curve.
+35. TfidfVectorizer matches its documented formula.
+
+36. Balanced undersampling and balanced class weights aim at the same tilted posterior; their
+    coefficients agree on average, and undersampling's vary more across seeds.
+37. SMOTE puts synthetic mass in the gap between two minority clusters only when k exceeds a
+    cluster's size.
+38. A label-changing augmentation (a left-right flip that reverses T5's side label) helps
+    when the label change is applied as it truly occurs.
+39. Input-only tests detect covariate and prior shift, with power rising in the shift, and
+    miss concept shift.
+40. Least squares' expected risk falls toward the Bayes risk σ², never below; the excess
+    scales as σ² and follows σ²(d + 1)/(n − d − 2).
+41. Extrapolating how many examples reach a target near the floor: infinite in many pilots
+    when the floor is unknown; finite but biased low, with wide intervals, when it is known.
+42. On T4, a bigram model's exact cross-entropy approaches the entropy rate; the local
+    exponent of its excess is not constant.
+43. Uncertainty sampling beats random labeling when classes are nearly separable, and gains
+    nothing measurable when labels are noisy (a 20-seed pilot suggested harm; 60 seeds did not
+    confirm it).
+
+Claims 22-35 were added in Phase 2 for chapters 1-7 (D9), and 36-43 in Phase 3 for chapters
+8-14 (D10); the exact thresholds are in each test's docstring.
 
 ## 9. Figures
 
@@ -472,8 +523,9 @@ Phase 2, 10–13 and 17–20 in Phase 3. Add more as chapters need them.
 
 - **Panel A:** T2's exact learning curves for several α on log-log axes, with Monte Carlo
   points and the n^−α/(1+α) guide lines.
-- **Panel B:** uniform sampling vs. coverage-driven selection at equal budget, oracle and
-  non-oracle, with the n^−α guide line.
+- **Panel B:** error against labels used: uniform sampling labeling every draw, the same
+  stream labeling only new features, the oracle, and pool selectors, with the n^−α guide line
+  (reframed at Gate 3, D10).
 
 If this figure does not make the long-tail argument visibly, rethink chapter 13 before
 writing it.

@@ -1,33 +1,181 @@
 # Choosing Data {#sec-choosing-data}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
-
-## Planned coverage {.unnumbered}
-
-- Deduplication (text testbed) (D)
-- Easy/hard pruning crossover (teacher-student, multi-seed) (D)
-- Difficulty scores (S)
-- RHO-LOSS (S)
-- Data mixtures (S)
-- Large-scale filtering (S/M)
-- Active learning (uncertainty-sampling demonstration) (D)
-- Model collapse (resampling from own fit on the Zipf testbed) (D)
+If returns on data diminish because most examples repeat what is already learned
+([Why Power Laws: The Long Tail](13-why-power-laws.qmd#sec-long-tail)), then choosing which
+examples to keep, label or train on should help. A whole literature does this: deduplication,
+pruning by difficulty, active learning, loss-based selection, domain mixtures and large-scale
+filtering. Its reverse is training on data a model generated, which chooses badly by
+construction. Every one of these methods pulls the same lever, the sampling distribution $q$,
+and every one works only under a condition. This chapter measures four of the conditions and
+states the rest from their sources.
 
 ## The problem
 
+Given more candidate data than can be used (or labeled, or trained on), which examples should
+the model see? When does choosing beat drawing at random, and when does it do harm?
+
 ## Assumptions
+
+1. **Selection changes $q$, deliberately.** The chosen examples are not a sample of $p$, so
+   anything estimated from them, including the model's own validation error, is biased unless
+   corrected ([The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp)).
+2. **Each demonstration uses the testbed that makes its condition exact:** T3 for pruning
+   (example difficulty known), T4 for deduplication (duplicates and entropy rate known), T1 for
+   active learning (Bayes rule known), and T2 for synthetic data (the tail known).
+3. **Large-scale methods are stated, not reproduced.** Their results are labeled as reported,
+   with dates.
 
 ## Derivation or demonstration
 
+**Pruning by difficulty (replicated finding with conditions; the crossover is from one theory
+paper, 2022).** Sorscher et al. analyze pruning in the teacher–student perceptron, the setting
+of T3. Their result: "with abundant (scarce) data", retain only hard (easy) examples, and with
+an increasing pruning fraction error can fall faster than a power law [@sorscher2022beyond].
+On T3 with 100 dimensions, keeping half the examples by their true margin:
+
+- **scarce data** ($P/N = 1$): keeping the easiest half gave test error {{< var ch14.easy_scarce >}},
+  the hardest half {{< var ch14.hard_scarce >}}, a random half {{< var ch14.random_scarce >}};
+  hard beat easy in {{< var ch14.hard_wins_scarce >}} of 20 seeds;
+- **abundant data** ($P/N = 16$): hardest half {{< var ch14.hard_rich >}}, easiest
+  {{< var ch14.easy_rich >}}, random {{< var ch14.random_rich >}}; hard beat easy in
+  {{< var ch14.hard_wins_rich >}} of 20 seeds
+  (`tests/test_pruning.py::test_pruning_crossover_hard_when_abundant_easy_when_scarce`).
+
+In between, at $P/N = 4$, hard won in {{< var ch14.hard_wins_mid >}} of 20. Real difficulty
+scores estimate the margin. Paul et al.'s EL2N (the norm of a model's error vector early in
+training) and GraNd (the expected gradient norm) [@paul2021deep], Toneva et al.'s forgetting
+events [@toneva2018empirical], and scores from small proxy models [@coleman2019selection] all
+do so. Ayed and Hayou report that random pruning "outperforms most existing data pruning
+methods in the high compression regime" and prove limits for score-based pruning
+[@ayed2023data, abstract].
+
+{{< include ../includes/cards/difficulty-pruning.md >}}
+
+**Deduplication (replicated finding).** Lee et al. found near-duplicates and long repeated
+substrings in standard language-model corpora: "over 1% of the unprompted output" of models
+trained on them was copied verbatim, and one 61-word sentence was repeated "over 60,000 times".
+Deduplicated models emitted memorized text "ten times less frequently" and reduced train–test
+overlap [@lee2021deduplicating, abstract]. On T4, 50 of 400 documents were each copied five
+extra times, and a trigram model that can memorize documents was trained on an 80/20 split:
+
+- **with duplicates across the split** ({{< var ch14.dedup_overlap >}}% of test documents also
+  in training): the measured test cross-entropy was {{< var ch14.opt_contam >}} nats lower than
+  on fresh text, between {{< var ch14.opt_contam_min >}} and {{< var ch14.opt_contam_max >}}
+  across 20 seeds;
+- **deduplicated before splitting:** within {{< var ch14.opt_dedup_abs_max >}} nats of the
+  fresh-text value
+  (`tests/test_dedup.py::test_deduplication_reduces_overlap_optimism`).
+
+On a long tail, deduplication also has a second role, measured in
+[Why Power Laws](13-why-power-laws.qmd#sec-long-tail): it stops labels being spent on covered
+cases.
+
+{{< include ../includes/cards/deduplication.md >}}
+
+**Active learning.** Uncertainty sampling "queries the instance whose posterior probability of
+being positive is nearest 0.5" [@settles2009active, §3.1]. On T1, starting from 10 random
+labels and adding 90 one at a time, it reached a rule closer to the Bayes rule than random
+labeling when the classes were nearly separable: at 100 labels it had
+{{< var ch14.al_ratio_clean >}} times random's disagreement (Bayes risk
+{{< var ch14.bayes_clean >}}). The gain vanished as label noise grew: the ratio was
+{{< var ch14.al_ratio_noisy >}} at a Bayes risk of {{< var ch14.bayes_noisy >}}, and
+{{< var ch14.al_ratio_very_noisy >}} at higher noise (60 seeds;
+`tests/test_active_learning.py::test_uncertainty_sampling_gains_shrink_with_label_noise`). Near
+a noisy boundary, the most uncertain examples are mostly noise. A 20-seed pilot suggested that
+uncertainty sampling was worse than random there; with 60 seeds the difference was within noise.
+
+{{< include ../includes/cards/uncertainty-sampling.md >}}
+
+**Selection by learnability (single study, 2022).** Mindermann et al. select, within each
+batch, the points whose training loss most exceeds an "irreducible holdout loss": the loss of
+a small model trained on holdout data. This avoids points that are already learned and points
+that are noisy, which plain high-loss selection picks. They report reaching target accuracy in
+18 times fewer steps on a web-scraped, noisily labeled benchmark [@mindermann2022prioritized].
+
+{{< include ../includes/cards/rho-loss.md >}}
+
+**Mixtures and filtering at scale (reported, 2023–2024).** DoReMi sets the proportions of
+training domains with a small proxy model trained by group distributionally robust
+optimization. It reports reaching a baseline's downstream accuracy "with 2.6x fewer training
+steps" [@xie2023doremi, abstract]. DataComp makes dataset filtering itself the benchmark,
+with a pool of 12.8 billion image–text pairs [@gadre2023datacomp]. FineWeb documents a
+15-trillion-token web dataset and ablates its curation choices [@penedo2024fineweb]. Goyal et
+al. show that the best filter depends on the training budget: limited high-quality data
+"rapidly loses its utility when repeated", so data curation "cannot be agnostic of the total
+compute" [@goyal2024scaling, abstract].
+
+{{< include ../includes/cards/domain-mixtures.md >}}
+
+{{< include ../includes/cards/filtering.md >}}
+
+**Training on generated data (replicated finding, with a contested scope).** Shumailov et al.
+report that training on model-generated data loses the tails of the original distribution
+[@shumailov2023curse; @shumailov2024ai; an author correction was published in 2025,
+@shumailov2025correction, whose content could not be accessed]. Dohmatob et al. derive the
+consequence on Hutter's model. A generator fit to $t_0$ samples cuts the tail, and a learner
+trained on its output plateaus [@dohmatob2024tale, Thm 2.1 and Cor. 2.2]. Gerstgrasser et al.
+find that collapse follows when synthetic data *replaces* real data, and is avoided when the two
+*accumulate* [@gerstgrasser2024model]. On T2 ($\alpha = 1$, $t_0 = 10{,}000$ draws per
+generation, 20 seeds), the mass outside the generator's support was {{< var ch14.collapse_g0 >}}
+in the first generation, equal to Hutter's expected error at $t_0$
+({{< var ch14.hutter_e_t0 >}}). Replacing the data each generation, it grew to
+{{< var ch14.collapse_g9 >}} by the tenth. Accumulating, it never grew
+(`tests/test_collapse.py::test_refitting_on_own_samples_loses_tail`). A learner trained on
+generated data can never get below that lost mass, however much it sees
+(`::test_training_on_generated_data_plateaus_at_the_lost_mass`).
+
+{{< include ../includes/cards/synthetic-data.md >}}
+
+::: {.callout-note title="Result: every way of choosing data rests on a condition"}
+Choosing data changes $q$, and each method helps only when its condition holds. Keeping hard
+examples needs abundant data. Uncertainty sampling needs labels whose noise is small near the
+boundary. A test set needs to be deduplicated against training. Loss-based selection needs a
+way to tell unlearned from unlearnable. Training on generated data needs the real data kept,
+because a generator fit to finite data has already lost the tail.
+:::
+
+::: {.callout-note title="In practice"}
+Deduplicate before splitting, exactly and then approximately. Prefer weighting to discarding
+when unsure. Before trusting a selection method, compare it with random selection at the same
+budget, on your data, with several seeds. Keep the real data you have: if synthetic data is
+added, add it, never substitute it.
+:::
+
 ## What it does to the learned model
+
+Selection changes what the model sees, so it changes what the model is good at. Pruning toward
+hard examples spends the budget near the boundary; keeping easy ones teaches the bulk first.
+Active learning, by design, makes the labeled set unrepresentative of $p$. Training on generated
+data teaches the generator's distribution, tail missing. In every case the model's own
+validation numbers, if computed on the selected data, describe $q$, not $p$.
 
 ## Failure modes
 
+![Panel A: on T3, test error after keeping the hardest, easiest or a random half of the examples, against the examples per dimension (20 seeds). Panel B: on T4 with duplicated documents, measured minus fresh-text cross-entropy, with duplicates across the split and after deduplication (20 seeds). Panel C: on T1, uncertainty sampling's disagreement with the Bayes rule relative to random labeling at 100 labels, as label noise grows (60 seeds). Panel D: on T2, the mass outside a generator's support over generations, replacing versus accumulating data (20 seeds). Every way of choosing data rests on a condition.](../images/choosing_data.png){#fig-choosing-data}
+
+@fig-choosing-data shows the four conditions failing:
+
+- **Pruning the wrong end** for the amount of data (panel A).
+- **Evaluating on duplicates** (panel B).
+- **Querying noise** (panel C).
+- **Replacing real data with generated data** (panel D).
+- **Selection tuned at one scale used at another.** A filter or mixture chosen for one compute
+  budget can be wrong for another [@goyal2024scaling].
+
 ## What the toy cannot show
+
+Each testbed isolates one condition. Real selection methods face several at once, use estimated
+scores instead of true margins and posteriors, and run at scales where comparing with random
+selection is itself expensive. The large-scale results above are reported by their authors, on
+their data, as of their publication; they are not reproduced here.
 
 ## Connections
 
-- [Why Power Laws: The Long Tail](13-why-power-laws.qmd#sec-long-tail): the neighboring chapter.
-- [A Data Decision Guide](15-decision-guide.qmd#sec-decision-guide): the neighboring chapter.
+- [Why Power Laws: The Long Tail](13-why-power-laws.qmd#sec-long-tail): what coverage-driven
+  selection can and cannot buy, exactly, on the long tail.
+- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): when a selection rule
+  is known, weights can undo its bias, at a cost in variance.
+- [Cleaning: Missing Values, Duplicates, Outliers, Leakage](04-cleaning.qmd#sec-cleaning): the
+  same duplicate leak on tabular data.
+- [rl-for-llms, Imitating a Better Distribution](https://ioannisantoniadis.github.io/rl-for-llms/chapters/09-imitating-a-better-distribution.html):
+  training on a model's own filtered samples, where the generator is the model being trained.

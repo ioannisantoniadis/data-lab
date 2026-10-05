@@ -162,3 +162,41 @@ def pool_selector(
     features, counts = np.unique(stream.sample(pool_size, rng), return_counts=True)
     order = np.lexsort((rng.random(features.size), -counts))
     return features[order[:n]]
+
+
+def dedup_selector(
+    stream: ZipfStream, n: int, rng: np.random.Generator, chunk: int = 100_000
+) -> tuple[np.ndarray, int]:
+    """Draw from p one at a time and label each feature the first time it appears, until n
+    features are labeled. No knowledge of p beyond recognizing a repeat. Returns the labeled
+    features (in order of first appearance) and the number of draws it took."""
+    seen: dict[int, None] = {}
+    draws = 0
+    while len(seen) < n:
+        for x in stream.sample(chunk, rng):
+            draws += 1
+            seen.setdefault(int(x))
+            if len(seen) == n:
+                break
+    return np.fromiter(seen, dtype=np.int64, count=n), draws
+
+
+def dedup_curve(stream: ZipfStream, ms) -> tuple[np.ndarray, np.ndarray]:
+    """The deduplicated uniform stream, exactly: after m draws, labeling only new features uses
+    E[D_m] = sum_i 1 - (1 - p_i)^m labels and leaves error E_m (Hutter's sum). Returns both, as
+    a curve parameterized by m."""
+    ms = np.asarray(ms, dtype=float)
+    labels = np.array([stream.expected_distinct(m).mid for m in ms])
+    errors = np.array([stream.expected_error(m).mid for m in ms])
+    return labels, errors
+
+
+def at_labels(stream: ZipfStream, n) -> tuple[np.ndarray, np.ndarray]:
+    """dedup_curve evaluated at n expected labels (log-log interpolation in m on a fine grid):
+    returns the draws m with E[D_m] = n and the error E_m there."""
+    n = np.asarray(n, dtype=float)
+    hi = np.log10(max(float(np.max(n)), 2.0)) * (1.0 + stream.alpha) + 2.0
+    ms = np.logspace(0, hi, 400)
+    labels, errors = dedup_curve(stream, ms)
+    m = np.exp(np.interp(np.log(n), np.log(labels), np.log(ms)))
+    return m, np.exp(np.interp(np.log(n), np.log(labels), np.log(errors)))

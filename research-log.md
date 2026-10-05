@@ -217,3 +217,111 @@ as logged above.
 **A solver problem, found and fixed.** L-BFGS-B alone stopped 2e-5 (relative) short of the
 max-margin optimum in the primal reference comparison. An active-set polish now solves the
 KKT system exactly (duality gap below 1e-14 over 90 solves at the paper's sizes).
+
+## 2026-10-04 to 2026-10-05: Phase 2 (chapters 1-7)
+
+| Source | URL | Accessed | Depth | Verified | Used in |
+|---|---|---|---|---|---|
+| Gebru et al. 2018, Datasheets for Datasets, arXiv 1803.09010 | https://arxiv.org/pdf/1803.09010 | 2026-10-04 | passage (§3, sections 3.1-3.7) | Seven sections (motivation, composition, collection process, preprocessing/cleaning/labeling, uses, distribution, maintenance); composition question on whether the dataset is "a sample (not necessarily random) of instances from a larger set" and whether it is representative | ch 1 |
+| Çetinkaya-Rundel & Hardin 2024, Introduction to Modern Statistics 2e (OpenIntro, CC BY-SA) | https://openintro-ims.netlify.app/data-design | 2026-10-04 | passage (§2.1.5) | Definitions of simple random, stratified, cluster, multistage and convenience samples; "It is often difficult to discern what sub-population a convenience sample represents." No DOI; bib entry from the book's site | ch 1 |
+| Northcutt et al. 2021, Confident Learning, arXiv 1911.00068 | https://arxiv.org/pdf/1911.00068 | 2026-10-04 | passage (§2 Assumptions; §3.1 eqs. 1-2; §3.2 methods 1-5; 4-fold CV) | Class-conditional noise assumption; per-class threshold t_j = mean self-confidence; confident joint; CL method 2 = off-diagonals | ch 2 |
+| Piantadosi 2014, Psychonomic Bulletin & Review 21(5) (10.3758/s13423-014-0585-6) | https://pmc.ncbi.nlm.nih.gov/articles/PMC4176592/ | 2026-10-04 | abstract + two passages | Word frequency "approximately follows a simple mathematical form known as Zipf's law"; "considerable structure ... beyond the fit of the Zipf-Mandelbrot equation" | ch 3 |
+| Kaufman, Rosset, Perlich 2011/2012, Leakage in data mining | https://www.cs.umb.edu/~ding/history/470_670_fall_2011/papers/cs670_Tran_PreferredPaper_LeakingInDataMining.pdf | 2026-10-04 | passage (abstract; §3.1-3.3) | Definition of leakage ("information about the data mining target, which should not be legitimately available to mine from"); leaking features (§3.2) vs leakage in training examples (§3.3); "no-time-machine requirement"; learn-predict separation. **Version read: the KDD 2011 conference paper; the bibliography cites the 2012 TKDD article (10.1145/2382577.2382579), not read.** | ch 3, 4 |
+| van Buuren 2018, Flexible Imputation of Missing Data 2e (10.1201/9780429492259) | https://stefvanbuuren.name/fimd/ (§1.2, §1.3) | 2026-10-04 | passage | MCAR/MAR/MNAR definitions (after Rubin 1976); listwise deletion unbiased under MCAR; mean imputation underestimates the variance and biases the mean when not MCAR; regression imputation: weights unbiased under MAR, correlations biased upward, variability understated. **Rubin 1976 itself not read (paywalled).** | ch 4 |
+| scikit-learn 1.9 user guide, Common pitfalls §12.2 | https://scikit-learn.org/stable/common_pitfalls.html | 2026-10-04 | page | Definition of leakage; "never call fit on the test data"; feature-selection example (0.76 leaky vs 0.5); the risk is "relevant with almost all transformations ... including StandardScaler, SimpleImputer, and PCA" | ch 4 |
+| Duan 1983, Smearing estimate (JASA, 10.1080/01621459.1983.10478017) | OpenAlex abstract | 2026-10-05 | abstract only | "nonparametric estimate of the expected response on the untransformed scale after fitting a linear regression model on a transformed scale". **Full text not accessible; the smearing formula is derived in the book (and in src/data_lab/transforms.py) from first principles, and tested; the chapter says so.** | ch 6 |
+| Micci-Barreca 2001, SIGKDD Explorations 3(1) (10.1145/507533.507538) | Crossref + scikit-learn TargetEncoder docstring | 2026-10-05 | bib + as cited by scikit-learn | scikit-learn's TargetEncoder "mixes the global target mean with the target mean conditioned on the value of the category (see [MIC])" | ch 7 |
+| Weinberger et al. 2009, Feature Hashing, arXiv 0902.2206 | arXiv API | 2026-10-05 | abstract | Hashing for dimensionality reduction; tail bounds | ch 7 |
+| Installed library docstrings (scikit-learn 1.9.1, SciPy 1.18.1) | installed packages | 2026-10-04/05 | doc | train_test_split stratify; LogisticRegression (L2, C=1.0 default; C=np.inf unpenalized; `penalty` deprecated in 1.8); cross_val_predict; KFold (shuffle=False default); TimeSeriesSplit; StandardScaler (ddof=0), MinMaxScaler, MaxAbsScaler, RobustScaler (quantile_range=(25, 75)); SimpleImputer (strategy="mean", add_indicator); scipy.stats.boxcox / boxcox_llf / yeojohnson formulas; PowerTransformer (method="yeo-johnson", standardize=True); QuantileTransformer (n_quantiles=1000, uniform, clips beyond the fitted range); TargetEncoder (cv=5 cross fitting in fit_transform; smooth="auto"; unseen levels -> target mean); FeatureHasher (signed 32-bit MurmurHash3); TfidfTransformer formula (smooth_idf) and TfidfVectorizer token_pattern | ch 1-7 |
+
+### Library behavior checked by test rather than recalled
+
+- scikit-learn decision trees place each threshold at the midpoint of the two adjacent values
+  among the samples in the node (in float32): `tests/test_invariance.py::test_tree_thresholds_are_midpoints_within_each_node`.
+
+### Discrepancies with the spec found in Phase 2
+
+- **Claim 2 (tree invariance)** → true on the training points, but not exactly on new points
+  under nonlinear monotone transforms, because thresholds sit at midpoints (measured: up to 0.16%
+  of new points change). Resolution: claim restated in the test and chapter 5; proposed for
+  SPEC at Gate 2.
+- **Claim 9 (scaler or imputer fit on train + test is optimistic)** → not supported: on i.i.d.
+  data, unsupervised steps change test accuracy by under 0.4 points on average and not
+  consistently upward; the large optimism comes from supervised steps (feature selection fit
+  before CV: 0.825 vs 0.513 on pure noise). scikit-learn's own page lists StandardScaler and
+  SimpleImputer as risks; the book keeps the rule and reports the sizes. Resolution: claim
+  restated in the test and chapter 4; proposed for SPEC at Gate 2.
+- **Smearing (part of claim 4's card)** → works with constant noise but also has a second
+  failure beyond bias under heteroscedastic noise: the factor itself is unstable (coefficient
+  of variation 0.72 across seeds). New claim 31.
+
+## 2026-10-05: Phase 3 (chapters 8-14)
+
+Depth as in the rest of this log: *passage* = the PDF opened and the cited section read;
+*abstract* = the arXiv or publisher abstract only; *bib* = metadata only. Every number the
+book quotes from a source is from the depth stated here.
+
+### Sources read in Phase 3
+
+| Source | Where read | Depth | What was checked | Used in |
+|---|---|---|---|---|
+| Saerens, Latinne, Decaestecker 2002 | ULB repository PDF | passage (§2.2, eqs. 4 and 9) | Prior-shift correction of posteriors (eq. 4); EM for new priors (eq. 9) | Ch. 8, `prior_shift_correct`, `em_prior` |
+| King and Zeng 2001 | PDF | passage (eq. 7) | Prior correction of the logistic intercept | Ch. 8 |
+| Chawla et al. 2002, SMOTE | JAIR PDF | passage (§4.2) | Interpolation between a minority point and one of its k minority neighbors | Ch. 8; the gap-filling failure is this book's measurement, and occurs only when k exceeds the cluster size |
+| Zhang et al. 2017, mixup (1710.09412) | arXiv PDF | passage (§2) | Convex combination of inputs and one-hot labels, λ ~ Beta(α, α) | Ch. 9 |
+| Park et al. 2019, SpecAugment (1904.08779) | arXiv PDF | passage (§2) | Time warping, frequency and time masking | Ch. 9 |
+| Cubuk et al. 2019, RandAugment (1909.13719) | arXiv PDF | passage (Figure 2) | Two parameters N and M | Ch. 9 |
+| Moreno-Torres et al. 2012 | reprinted in Moreno-Torres's 2013 thesis (digibug.ugr.es); the journal PDF was not reachable | passage (Definitions 1-4) | Covariate, prior-probability and concept shift definitions | Ch. 10 |
+| Recht et al. 2019 (1902.10811) | arXiv PDF | abstract and §1 | Accuracy drops of 3-15% (CIFAR-10) and 11-14% (ImageNet) | Ch. 10 |
+| Lopez-Paz and Oquab 2016 (1610.06545) | arXiv API | abstract | Classifier two-sample tests | Ch. 10 |
+| Viering and Loog 2021 (2103.10948) | arXiv PDF | passage (§§2, 2.2, 4.1) | Learning-curve shapes, power-law and other fits | Ch. 11 |
+| Hestness et al. 2017 (1712.00409) | arXiv PDF | passage (§1) | "settles between −0.07 and −0.35" | Ch. 12 |
+| Kaplan et al. 2020 (2001.08361) | arXiv PDF | passage (§1, eqs. 1.1-1.2) | α_D ≈ 0.095, α_N ≈ 0.076, N ∝ C^0.73 | Ch. 12 |
+| Hoffmann et al. 2022 (2203.15556) | arXiv PDF | passage (abstract, §3.3, Table 2, Appendix D.2) | Exponents 0.50/0.49/0.46; E = 1.69, α = 0.34, β = 0.28 | Ch. 12 |
+| Besiroglu et al. 2024 | arXiv API | abstract | Third-method estimates inconsistent, intervals implausibly narrow | Ch. 12 |
+| Muennighoff et al. 2023 (2305.16264) | arXiv PDF | passage (abstract, §6) | Up to 4 epochs negligible; half-life about 16 epochs | Ch. 12 |
+| Rosenfeld et al. 2019 | arXiv API | abstract | A joint functional form | Ch. 12 |
+| Michaud et al. 2023 (2303.13506) | arXiv PDF | passage (§2, eqs. 1-2, data and single-epoch scaling) | Eq. 2 = a + (b−a) n^−α / (α ζ(α+1)); multi-epoch threshold τ gives D^−α/(α+1); single-epoch, n quanta need about T n^(α+1) steps, giving S^−α/(α+1) | Ch. 13 (the chapter 13 review asked for passage depth) |
+| Hutter 2021 (2102.04074) | arXiv PDF | passage (§1, re-read 2026-10-05) | "no indication that our findings transfer" refers to the other modeling routes (models scaled with data; non-parametric models), not to real data in general; the chapter now says so | Ch. 13 |
+| Dohmatob et al. 2024 (2402.07043v2) | arXiv PDF | passage (§§1-3) | Eq. 6 and Cor. 2.2: a finite sample of T_0 draws cuts the tail near probability 1/T_0, the bound behind the pool selector; Thm 2.1: the resulting plateau | Ch. 13 (pool bound credited), Ch. 14 |
+| Maloney, Roberts, Sully 2022 (2210.16859) | arXiv API | abstract | Spectral power laws in data become power laws in loss in a solvable random-feature model; the spectrum's finite extent gives a plateau | Ch. 13, competing account |
+| Cagnetta, Raventós, Ganguli, Wyart 2026 (2602.07488v3) | arXiv API | abstract | Data-limited exponents predicted without free parameters from the decay of token correlations and of conditional entropy; matched on TinyStories and WikiText with GPT-2- and LLaMA-style models | Ch. 13, competing account |
+| Sorscher et al. 2022 | arXiv PDF (logged in Phase 1) | passage | Abundant (scarce) → keep hard (easy) | Ch. 14, reproduced on T3 |
+| Paul et al. 2021 (2107.07075) | arXiv PDF | passage (§2, Definitions 2.1 and 2.3) | GraNd = expected gradient norm; EL2N = expected norm of the error vector, accurate after a few epochs | Ch. 14 |
+| Toneva et al. 2018 (1812.05159) | arXiv PDF | abstract | The definition of a forgetting event | Ch. 14 |
+| Coleman et al. 2019 | arXiv API | abstract | Selection via small proxy models | Ch. 14 |
+| Ayed and Hayou 2023 | arXiv API | abstract | Random pruning beats most methods at high compression | Ch. 14 |
+| Lee et al. 2021 (2107.06499) | arXiv PDF | abstract and §1 | Over 1% verbatim output; a 61-word sentence over 60,000 times; ten times less memorized text after dedup | Ch. 14 |
+| Settles 2009, *Active Learning Literature Survey* | author's PDF | passage (§3.1) | Uncertainty sampling, binary case: posterior nearest 0.5 | Ch. 14 |
+| Mindermann et al. 2022 (2206.07137) | arXiv PDF | abstract and the derivation of the irreducible holdout loss | RHO-LOSS = training loss minus irreducible holdout loss; 18× fewer steps on Clothing-1M | Ch. 14 |
+| Xie et al. 2023, DoReMi (2305.10429) | arXiv PDF | abstract | 280M proxy with Group DRO; "2.6x fewer training steps" | Ch. 14 |
+| Gadre et al. 2023, DataComp | arXiv API | abstract | 12.8B image-text pool; filtering as the benchmark | Ch. 14 |
+| Penedo et al. 2024, FineWeb | arXiv API | abstract | 15T tokens; ablated curation | Ch. 14 |
+| Goyal et al. 2024 | arXiv API | abstract | Curation "cannot be agnostic of the total compute" | Ch. 14 |
+| Shumailov et al. 2023 / 2024 (Nature) | arXiv PDF / Nature abstract | abstract | Tails lost under recursive training | Ch. 14 |
+| Shumailov et al. 2025, author correction | Nature | bib only | **Content not accessible** (Nature login); the chapter says so | Ch. 14 |
+| Gerstgrasser et al. 2024 (2404.01413) | arXiv API | abstract | Replace collapses; accumulate avoids it | Ch. 14, reproduced on T2 |
+
+### Derived in Phase 3, not from a source
+
+- **The deduplicated uniform stream on Hutter's model.** Labeling each feature the first time it
+  appears costs E[D_m] labels after m draws and leaves error E_m (both exact). From the integral
+  approximation behind Hutter's eq. 4: E[D_m] ≈ Γ(β)(Am)^(1/s), so at n labels the error is
+  β Γ(β)^(1+α) times the oracle's (π/2 at α = 1; 1.46 at α = 0.5; 1.66 at α = 2), after
+  m ≈ (n/Γ(β))^s / A draws. Checked against the exact curve and a simulation
+  (`tests/test_long_tail.py`). Not found in Hutter, Dohmatob or Michaud; derived here.
+
+### Discrepancies with the spec found in Phase 3
+
+- **Coverage selection (SPEC §7, claim 16).** The spec and the Phase 1 chapter attribute the
+  steeper exponent to choosing the most frequent cases first. The evidence: per label, the
+  exponent comes from not labeling repeats, which needs no knowledge of p; frequency order adds
+  only a constant (about 1.5). Per draw, nothing beats uniform sampling's exponent. Chapter 13,
+  the signature figure's Panel B and the coverage card are revised; SPEC §7/§9 wording is
+  proposed at Gate 3.
+- **Active learning on noisy labels (claim 18).** A 20-seed pilot suggested that uncertainty
+  sampling is worse than random under heavy label noise; at 60 seeds the ratio was 1.07, within
+  noise. The claim is restated as "the gain vanishes".
+- **Deduplication (claim 17).** "Below the entropy rate" was not a reliable signature on T4;
+  restated as optimism of more than 0.3 nats removed by deduplication.
+- **SMOTE.** It fills the gap between minority clusters only when k exceeds the cluster size.

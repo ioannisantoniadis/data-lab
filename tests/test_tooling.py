@@ -108,7 +108,11 @@ def _test_functions(path: Path) -> set[str]:
 
 
 def test_every_checked_by_names_an_existing_test():
+    bib = (ROOT / "docs" / "references.bib").read_text()
     for r in technique_data.T:
+        if r["checked_by"].startswith("source: "):
+            assert "{" + r["checked_by"][8:] + "," in bib, r["checked_by"]
+            continue
         file, name = r["checked_by"].split("::")
         assert (ROOT / file).exists(), r["checked_by"]
         assert name in _test_functions(ROOT / file), r["checked_by"]
@@ -178,3 +182,27 @@ def test_coverage_lists_every_chapter_item():
     rows = re.findall(r"^\| \[[ x]\] \|", coverage, re.M)
     # SPEC §6: 9 + 18 + 10 + 18 + 2 items.
     assert len(rows) == 57
+
+
+# --- published numbers ------------------------------------------------------------------------
+
+
+def test_every_quoted_number_is_published(tmp_path):
+    """Every {{< var ns.key >}} in the book exists in docs/_variables.yml, and publish() writes
+    sorted JSON that round-trips."""
+    import json
+
+    import publish as numbers_module  # scripts/publish.py
+
+    data = json.loads((ROOT / "docs" / "_variables.yml").read_text())
+    used = set()
+    for path in word_count.qmd_files():
+        used |= set(re.findall(r"\{\{<\s*var\s+([\w.]+)\s*>\}\}", path.read_text()))
+    for key in used:
+        ns, _, name = key.partition(".")
+        assert name in data.get(ns, {}), f"{key} is quoted but not published"
+    out = tmp_path / "v.yml"
+    numbers_module.publish("b", {"z": "1", "a": "2"}, path=out)
+    numbers_module.publish("a", {"k": "3"}, path=out)
+    assert list(json.loads(out.read_text())) == ["a", "b"]
+    assert numbers_module.fmt(0.12345) == "0.123" and numbers_module.fmt(256000) == "256,000"

@@ -1,29 +1,184 @@
 # Cleaning: Missing Values, Duplicates, Outliers, Leakage {#sec-cleaning}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
-
-## Planned coverage {.unnumbered}
-
-- MCAR / MAR / MNAR (S)
-- Bias of mean imputation and complete-case analysis under each mechanism (D)
-- Duplicates inflating test scores (D)
-- Train-only fitting of preprocessing (leakage demonstration) (D)
+Cleaning is usually presented as housekeeping: fill the gaps, drop the copies, clip the
+extremes, then get on with modeling. Each of those steps pulls a lever, though. Dropping rows
+changes the sampling distribution $q$; filling a gap changes the representation; and the way a
+step is fit can change what an evaluation measures. This chapter derives what three common
+treatments of missing values do under each kind of missingness, then measures two leaks of very
+different size.
 
 ## The problem
 
+A dataset arrives with some values missing, some rows repeated, some values extreme, and a
+plan to fit preprocessing steps before the model. For each treatment, which quantities stay
+correct, and which become biased? The answer depends less on the treatment than on *why* the
+data looks the way it does.
+
 ## Assumptions
+
+1. **Missingness has a mechanism.** Following Rubin (1976), van Buuren states the three cases
+   this way: data are **MCAR** "if the probability of being missing is the same for all
+   cases", **MAR** "if the probability of being missing is the same only within groups
+   defined by the observed data", and **MNAR** if neither holds [@vanbuuren2018fimd, §1.2].
+   Which case applies cannot be read off the observed data alone: it is an assumption about
+   $p$.
+2. **One column goes missing, and a correlated column is always observed.** With several
+   incomplete columns the reasoning is the same, but the bookkeeping is not.
+3. **Test examples will be new.** Deployment does not show the model copies of its training
+   rows. If it does (a lookup service, repeat customers), duplicates are part of $p$, and
+   removing them would be wrong.
 
 ## Derivation or demonstration
 
+**Missing values.** Consider column $z_1$ of the tabular testbed, with true mean 0 and variance
+1, 40% missing, and an always-observed column $z_2$ correlated 0.6 with it. Three treatments:
+
+- **Complete-case analysis** drops the rows where $z_1$ is missing. It changes $q$: the kept
+  rows are a selection, and [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp)
+  showed what selection does.
+- **Mean imputation** fills each gap with the observed mean. It changes the representation:
+  a missing value is now encoded as an ordinary-looking number.
+- **Regression imputation** fills each gap with the straight-line prediction from $z_2$, fit
+  on the rows where $z_1$ is observed.
+
+Under MCAR the kept rows are a random subset, so complete-case estimates are unbiased. Mean
+imputation keeps the mean but puts 40% of the values exactly at it. Its variance falls to about $1 - r$
+times the original, $0.6$ here, with $r$ the share imputed. Regression imputation keeps the part of
+the variance that $z_2$ explains: imputed values have variance $0.6^2$ of the original, so the
+total is $1 - 0.4\,(1 - 0.6^2) = 0.744$. Over 200 seeds the measured variances were 0.995,
+0.596 and 0.740.
+
+Under MAR, here a missingness probability that rises with $z_2$, the observed $z_1$ values are
+skewed toward one side. Both the complete-case mean and the mean-imputed mean were $-0.321$ on
+average. Regression imputation uses exactly the variable that drives the missingness, and its
+mean was $-0.002$. Under MNAR, missingness rising with $z_1$ itself, every treatment was biased.
+The best of the three was regression imputation, at $-0.392$
+(`tests/test_missing.py::test_mcar_mean_imputation_shrinks_variance_mar_complete_case_biased`).
+
+::: {.callout-note title="Result: the mechanism decides which treatment is biased"}
+A complete-case estimate of the mean is unbiased under MCAR, and biased here under MAR and MNAR.
+(Regressions fit to complete cases can stay unbiased when missingness depends only on the
+regression's inputs: that is selection on $x$, from
+[The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp).) Mean imputation
+keeps the mean under MCAR only, and always shrinks the variance, by the share imputed. Regression imputation on the
+variables that drive the missingness removes the bias of the mean under MAR, but understates
+the variance. No treatment that uses only the observed data removes the bias under MNAR.
+:::
+
+These match van Buuren's summary of the same methods. Listwise deletion gives "unbiased
+estimates of means, variances and regression weights" under MCAR. Mean imputation will
+"underestimate the variance". And under regression imputation "correlations are biased
+upwards, and the variability of the imputed data is systematically underestimated"
+[@vanbuuren2018fimd, §1.3]. Multiple imputation, which adds the missing variability back by
+drawing several plausible values, is the standard remedy; it is beyond this book and
+@vanbuuren2018fimd treats it in full.
+
+{{< include ../includes/cards/complete-case.md >}}
+
+{{< include ../includes/cards/mean-imputation.md >}}
+
+{{< include ../includes/cards/regression-imputation.md >}}
+
+**Duplicates.** If some test rows are copies of training rows, a model that memorizes is
+rewarded twice. On T1, a 1-nearest-neighbor classifier trained on 2,000 rows scored 0.660 on
+1,000 fresh test rows. With 30% of the test rows replaced by training rows, it scored 0.762,
+and with half, 0.830. The Bayes accuracy, the most any classifier can reach on new data, is
+0.749. A test score above it is impossible on new data, so it measures memorization. On the
+fresh rows alone, the score stayed at 0.660 (20 seeds;
+`tests/test_leakage.py::test_train_test_duplicates_inflate_the_test_score`).
+
+{{< include ../includes/cards/dedup-train-test.md >}}
+
+**Leakage through fitted preprocessing.** Kaufman et al. define leakage as "the introduction
+of information about the data mining target, which should not be legitimately available to
+mine from". They separate leaking features from leakage in training examples
+[@kaufman2011leakage, §3.2–3.3]. scikit-learn's documentation gives the practical rule: never
+call `fit` on the test data. It says the risk applies to "almost all transformations in
+scikit-learn, including (but not limited to) `StandardScaler`, `SimpleImputer`, and `PCA`"
+(scikit-learn 1.9, *Common pitfalls*, §12.2).
+
+The rule is right. The sizes of the two leaks it guards against are very different, though.
+On i.i.d. T1 data, a scaler, a min-max scaler or a mean imputer fit on train plus test instead
+of train alone changed test accuracy by at most 0.4 percentage points on average. That held for
+a 15-nearest-neighbor classifier and a strongly regularized logistic regression, over 200 seeds
+each. The changes were not consistently upward: the largest was $-0.4$ points. These steps see
+the test *inputs*, whose distribution matches the training inputs, and never the test labels.
+
+A supervised step is different. With 100 examples, 2,000 pure-noise features and labels that
+are coin flips, selecting the 20 features most associated with the labels on all the data,
+then cross-validating a classifier on them, reported an accuracy of 0.825. The same selection
+done inside each fold reported 0.513, close to the true 0.5 (20 seeds;
+`tests/test_leakage.py::test_fitting_preprocessing_on_test_is_optimistic`).
+
+::: {.callout-note title="Result: what a leak leaks"}
+Fitting a step on the test data leaks what that step reads. An unsupervised step reads the
+test inputs, which on i.i.d. data carry little that the training inputs do not. A supervised
+step reads the test labels, and can fabricate a signal from noise.
+:::
+
+{{< include ../includes/cards/train-only-fitting.md >}}
+
+::: {.callout-note title="In practice"}
+Put every fitted step in a `sklearn.pipeline.Pipeline` and cross-validate the pipeline as one
+estimator, so each step is refit inside each fold. scikit-learn 1.9's `SimpleImputer` imputes the mean by
+default (`strategy="mean"`); `add_indicator=True` also appends a column marking which values
+were missing, which keeps the fact of missingness available to the model. That fact is itself
+informative whenever the data is not MCAR.
+:::
+
+**Outliers.** An extreme value is either an error (a unit mix-up, a sensor fault) or a real
+case from the tail of $p$. The two call for opposite treatments. Removing errors corrects the
+representation. Removing real tail cases changes $q$ and teaches the model that the tail does
+not exist. No statistic separates them reliably, because both are, by definition, rare.
+[Affine Scaling](05-affine-scaling.qmd#sec-affine) shows how one scaler is built to be
+insensitive to them, and robust losses are derived in
+[loss-functions-lab](https://ioannisantoniadis.github.io/loss-functions-lab/chapters/05-laplace-robust-losses.html).
+
 ## What it does to the learned model
+
+Missing-value treatments change the data a model is fit to in ways the model cannot detect. A
+mean-imputed column is a mixture of real values and a spike at the mean. A linear model fits a
+slope through both. A tree can split the spike off and use "was missing" as information, which
+under MAR or MNAR is real information. Complete-case analysis under MAR is selection: the model
+is fit to a distribution that differs from $p$.
+
+Duplicates and leaks change nothing about the model itself, only what we believe of it. Their
+cost appears later, when the deployed model performs as the fresh rows predicted, not as the
+contaminated test set promised.
 
 ## Failure modes
 
+![Estimated mean (A) and variance (B) of $z_1$ after complete-case analysis, mean imputation and regression imputation, under MCAR, MAR and MNAR missingness (40% missing; dots are 200 seeds, bars their means). Which treatment is biased depends on the mechanism: mean imputation keeps the MCAR mean but shrinks the variance, regression imputation repairs the MAR mean, and nothing here repairs MNAR.](../images/missingness.png){#fig-missingness}
+
+![Panel A: 1-nearest-neighbor test accuracy as a growing share of the test rows are copies of training rows, on the contaminated test set and on its fresh rows only (mean and range over 20 seeds); above the Bayes accuracy is impossible on new data. Panel B: the change in test accuracy from fitting a preprocessing step on train plus test instead of train alone, for unsupervised steps (200 seeds each) and for supervised feature selection on pure-noise labels (20 seeds). Duplicates and supervised steps inflate the score; unsupervised steps barely move it.](../images/leakage.png){#fig-leakage}
+
+@fig-missingness and @fig-leakage show the failures measured above. Three more:
+
+- **Assuming MAR when the data is MNAR.** Income goes unreported more often when it is high;
+  a symptom goes unrecorded when it is absent. No observed column carries that dependence, so
+  imputation from observed columns cannot remove it.
+- **Near-duplicates.** Exact matching finds copied rows, not a resized image or a reformatted
+  record. [Choosing Data](14-choosing-data.qmd#sec-choosing-data) returns to deduplication at
+  scale.
+- **Supervised steps hidden in "preprocessing".** Target encoding, feature selection by
+  correlation, and resampling to balance classes all read the labels. Fit before the split,
+  each is a leak of the second kind. Target encoding is the subject of
+  [Encoding and Features](07-encoding-and-features.qmd#sec-encoding).
+
 ## What the toy cannot show
+
+The testbed's missingness depends on one column through a known curve, and its duplicates are
+exact. Real missingness mixes mechanisms, and which one holds cannot be tested from the
+observed data. The demonstrations show what each treatment does under each mechanism, not
+which mechanism a real dataset has.
 
 ## Connections
 
-- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): the neighboring chapter.
-- [Affine Scaling](05-affine-scaling.qmd#sec-affine): the neighboring chapter.
+- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): complete-case
+  analysis is selection, and the selection-on-$x$ versus selection-on-$y$ result applies.
+- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): temporal leakage is the
+  ordered-data version of the leaks measured here.
+- [Affine Scaling](05-affine-scaling.qmd#sec-affine): the next step after cleaning, and the
+  first transform that is fit to the data.
+- [Encoding and Features](07-encoding-and-features.qmd#sec-encoding): target encoding, the
+  supervised preprocessing step that leaks most often in practice.

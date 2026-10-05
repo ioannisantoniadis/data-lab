@@ -1,7 +1,8 @@
 # Welcome {.unnumbered}
 
 ::: {.callout-warning title="Work in progress"}
-This book is in Phase 0 (foundation). Every chapter is a stub; nothing here is yet a claim.
+Parts I to IV (chapters 1–14) are drafted; chapters 8–14 are awaiting the author's review.
+The decision guide and the other synthesis pages are still stubs; nothing in a stub is a claim.
 :::
 
 A model learns the distribution it is trained on, through the representation it is given. This

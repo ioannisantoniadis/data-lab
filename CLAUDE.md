@@ -31,7 +31,7 @@ book with code on data for learning (repo `data-lab`; see `DECISIONS.md`).
 ## Where things live
 
 ```
-src/data_lab/           testbeds/ (T1–T5), transforms, sampling, selection (stubs until Phase 1)
+src/data_lab/           testbeds/ (T1–T5), sampling, labels, cleaning, transforms, selection
 tests/                  test_<area>.py: one test per SPEC §8 claim; test_tooling.py
 scripts/technique_data.py   data-card records -> docs/includes/ (never edit includes by hand)
 scripts/figures/        fig_<slug>.py + _theme.py (save_figure, LEVER_COLOR)
@@ -68,5 +68,8 @@ From the `ioannisantoniadis/claude-skills` marketplace:
 - **2026-10-04: Phase 1 done; ⛳ Gate 1 passed** (D8; SPEC v0.3), committed locally. Testbeds T1–T5 with tests, the
   coverage-selection derivation, and the signature figure. See ROADMAP.md, *What Phase 1
   showed*.
-- **Next, Phase 2 (waits for the owner's go-ahead):** chapters 1–7 and claims 1–9 and 21;
-  fresh-agent audit after chapter 7; ⛳ Gate 2.
+- **2026-10-05: Phase 2 done; ⛳ Gate 2 passed** (D9; SPEC v0.4), uncommitted.
+- **2026-10-05: Phase 3 drafted; at ⛳ Gate 3** (uncommitted). Chapters 8–14 written; claims
+  10–13, 17–20 and 36–43 pass; the chapter 13 skeptical review is resolved
+  (`audits/2026-10-05-ch13-skeptical-review.md`). Waiting for the owner's review of chapters
+  8–14 and the Gate 3 decisions (ROADMAP.md, *Proposed for SPEC at Gate 3*).

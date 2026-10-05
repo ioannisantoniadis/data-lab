@@ -1,29 +1,158 @@
 # Encoding and Features {#sec-encoding}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
-
-## Planned coverage {.unnumbered}
-
-- One-hot / ordinal / hashing (S)
-- Target-encoding leakage and cross-fitting (D)
-- Discretization and splines (S)
-- TF-IDF (S)
+Models take numbers. Categories, words and the bends in a numeric relationship have to become
+numbers first, and the choice of encoding decides which functions of them are easy to learn. An
+encoding can assert an order the data does not have, merge categories that should stay apart,
+or, in one popular case, copy the label into the features. This chapter treats the common
+encodings as choices on the representation lever, and measures the one that leaks.
 
 ## The problem
 
+Given a categorical column, a numeric column whose effect is curved, or a column of text, which
+representation lets the model learn the right function, and what does each representation
+assume? For one encoding, target encoding, there is a second question. It is computed from the
+labels, so how should it be fit without leaking them?
+
 ## Assumptions
+
+1. **The model is fixed; only the representation changes.** Each demonstration holds the model
+   constant (an unpenalized logistic regression or a linear regression) and changes only the
+   encoding, so differences come from the representation.
+2. **Levels and vocabularies are learned from training data only.** A level or a word first
+   seen at test time has no column, unless the encoder reserves one or hashes it.
+3. **For target encoding, rows are exchangeable.** With rows ordered in time, the encoding must
+   also respect time ([Data Types and Their Structure](03-data-types.qmd#sec-data-types)).
 
 ## Derivation or demonstration
 
+**One-hot and ordinal codes.** A one-hot encoding gives each level its own indicator column; an
+ordinal encoding gives each level an integer. A linear model on one-hot columns can assign
+every level its own effect. On an ordinal code it can fit only a straight line in the code,
+asserting both an order and an equal spacing. In the demonstration, a category has six levels
+whose effects (0, 3, −2, 1, −3, 2) are unrelated to their codes. Linear regression on the
+one-hot encoding reached a test $R^2$ of 0.947, equal to the ceiling the noise allows. On the
+ordinal code it reached 0.008
+(`tests/test_encoding.py::test_ordinal_codes_impose_an_order_one_hot_does_not`).
+
+{{< include ../includes/cards/one-hot-ordinal.md >}}
+
+**Hashing.** With very many levels, or an open-ended set (identifiers, words), feature hashing
+maps each level to one of $m$ columns by a hash function, with no stored vocabulary
+[@weinberger2009feature]. Distinct levels that land in the same column share it. For a uniform
+hash, $k$ levels occupy on average $m\,(1 - (1 - 1/m)^k)$ of the $m$ columns. Hashing 2,000
+levels with scikit-learn's `FeatureHasher` used 880 of 1,024 columns (expected 879) and 1,775
+of 8,192 (expected 1,775). Even with four times as many columns as levels, the 2,000 levels
+fell into only 1,775 columns, so at least 225 of them share a column with another
+(`tests/test_encoding.py::test_feature_hashing_collides_at_the_expected_rate`).
+
+{{< include ../includes/cards/feature-hashing.md >}}
+
+**Target encoding.** A high-cardinality category can instead be replaced by one number per
+level: the mean target among training rows with that level, shrunk toward the global mean for
+rare levels. scikit-learn's `TargetEncoder` follows Micci-Barreca's scheme of mixing the global
+mean with the level's mean [@miccibarreca2001preprocessing]. The encoding is computed from the
+labels, which makes it a supervised step, and
+[Cleaning](04-cleaning.qmd#sec-cleaning) showed that supervised steps fit on the evaluation
+rows fabricate signal. Here the evaluation rows are the training rows themselves. If each row's
+encoding includes its own label, the feature carries that label into the model.
+
+The demonstration adds one pure-noise feature to T1's classification task: a category with
+1,000 levels, assigned at random. Over 20 seeds, with 2,000 training rows:
+
+- **without the feature,** training and test accuracy were 0.746 and 0.752;
+- **encoded on the same rows it was fit on,** training accuracy rose to 0.854 and test accuracy
+  fell to 0.618. The model put a large coefficient (7.8, on a probability-scale feature) on
+  noise;
+- **cross-fitted,** where each row is encoded by an encoder fit on the other folds, as
+  `TargetEncoder.fit_transform` does (here with a seeded 5-fold splitter), the result was 0.747
+  and 0.751, with a coefficient of $-0.05$
+  (`tests/test_leakage.py::test_target_encoding_without_cross_fitting_leaks`).
+
+::: {.callout-note title="Result: an encoding fit on the labels must not see the row it encodes"}
+A target encoding computed on the same rows it encodes includes each row's own label. With
+many rare levels that is enough to turn pure noise into the strongest feature in training, and
+the model is then worse on new data than without it. Cross-fitting, encoding each row with
+statistics from the other folds, removes the leak.
+:::
+
+{{< include ../includes/cards/target-encoding.md >}}
+
+**Splines and bins.** A numeric feature whose effect is curved defeats a linear model on the
+raw value. Two encodings give the linear model a curve to fit. Discretization replaces $x$ by
+indicators of intervals, and splines replace it by a basis of piecewise polynomials. On
+$y = \sin(2x)$ plus noise, a linear regression on raw $x$ reached a test $R^2$ of 0.14. On 20
+quantile bins it reached 0.82, and on a cubic spline basis with 8 knots 0.85, against a noise
+ceiling of 0.85
+(`tests/test_encoding.py::test_splines_and_bins_let_a_linear_model_fit_a_curve`).
+
+{{< include ../includes/cards/splines-bins.md >}}
+
+**Text: from counts to TF-IDF.** The simplest representation of a document counts its words,
+discarding order. TF-IDF reweights the counts so that words common to every document count
+less. In scikit-learn's default it multiplies the count $\text{tf}(t, d)$ of term $t$ in
+document $d$ by $\ln\big((1 + n)/(1 + \text{df}(t))\big) + 1$, where $n$ is the number of
+documents and $\text{df}(t)$ the number containing $t$, then scales each document's vector to
+unit length (scikit-learn 1.9, `TfidfTransformer` docstring; a test reproduces its output from
+this formula to 12 digits:
+`tests/test_encoding.py::test_tfidf_matches_the_documented_formula`). Learned embeddings
+replace this with vectors trained on other text, which belongs to the architecture books.
+
+{{< include ../includes/cards/tf-idf.md >}}
+
+**Images and audio.** Pixel intensities and audio samples are already numbers. Their encoding
+questions are the representation and scale questions of the previous chapters: rescaling
+intensities is affine ([Affine Scaling](05-affine-scaling.qmd#sec-affine)), and a spectrogram
+is a change of representation
+([Data Types and Their Structure](03-data-types.qmd#sec-data-types)).
+
+::: {.callout-note title="In practice"}
+In scikit-learn 1.9, `TargetEncoder().fit_transform(X, y)` cross-fits (`cv=5`), but
+`fit(X, y).transform(X)` does not; its documentation notes that the second "does not equal" the
+first. Use `fit_transform` on training data and `transform` on new data, or put the encoder in a
+`Pipeline`. Its folds are shuffled without a fixed seed by default, so pass a splitter such as
+`cv=KFold(5, shuffle=True, random_state=0)` for reproducible results (the `shuffle` and
+`random_state` arguments are deprecated in 1.9). `TfidfVectorizer`'s default `token_pattern`
+keeps tokens of two or more alphanumeric characters, so one-character words are dropped.
+:::
+
 ## What it does to the learned model
+
+An encoding sets the hypothesis space a fixed model can reach. One-hot columns let a linear
+model fit any per-level effect; an ordinal code limits it to a line in an arbitrary order.
+Splines let it fit smooth curves. Hashing lets colliding levels share an effect. Target encoding
+compresses a category into one number, which is efficient when the number is honest and
+destructive when it contains the label. In the last case the model learns to read the leak, and
+on new data, where there is none, it is worse than if the feature had been left out.
 
 ## Failure modes
 
+![Panel A: training (circles) and test (squares) accuracy of the same logistic regression with a pure-noise 1,000-level category left out, target-encoded on the rows it encodes, and cross-fitted (lines join each of 20 seeds). Panel B: the same linear regression fit to $y = \sin(2x)$ plus noise on raw $x$, on 20 quantile bins and on a cubic spline basis. Target encoding without cross-fitting turns noise into a training signal that fails on new data; bins and splines let a linear model fit a curve.](../images/encoding.png){#fig-encoding}
+
+@fig-encoding shows the two central demonstrations. Further failures:
+
+- **Unseen levels.** A level absent from training has no one-hot column and no target mean.
+  scikit-learn's encoders raise an error or map it to a default (the global mean, for
+  `TargetEncoder`); either way the model learns nothing about it.
+- **Too many bins or knots.** Each bin or knot adds a parameter fit on fewer rows, so variance
+  rises. Neither bins nor splines extrapolate beyond the training range.
+- **Leakage across time.** A cross-fitted target encoding still averages labels from the
+  future when rows are ordered in time, the same failure as a shuffled split.
+
 ## What the toy cannot show
+
+The noise category is pure noise, and the curve is a single smooth function of one feature.
+Real categories carry some signal and some noise in unknown proportions, and real text needs
+far more than counts. The demonstrations show what each encoding can represent and how target
+encoding leaks, not which encoding is best for a given dataset.
 
 ## Connections
 
-- [Changing the Shape](06-changing-the-shape.qmd#sec-shape): the neighboring chapter.
-- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): the neighboring chapter.
+- [Cleaning: Missing Values, Duplicates, Outliers, Leakage](04-cleaning.qmd#sec-cleaning):
+  target encoding is the supervised preprocessing step that leaks, the second kind of leak
+  measured there.
+- [Changing the Shape](06-changing-the-shape.qmd#sec-shape): splines and bins are another way to
+  change what a linear model can fit in a feature.
+- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): Part III turns from the
+  representation lever to the sampling distribution and the weights.
+- [Choosing Data](14-choosing-data.qmd#sec-choosing-data): text at scale, where duplicates and
+  near-duplicates, not encodings, become the main data problem.

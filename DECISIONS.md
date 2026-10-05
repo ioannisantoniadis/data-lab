@@ -20,6 +20,37 @@ Recruiting during Phase 1 keeps Phase 2 from waiting.
 
 ## Closed
 
+### D10. Gate 3 decisions (2026-10-05)
+
+The owner asked to commit, move on to Phase 4, and remove unused references. Applied as
+proposed in the Gate 3 report (ROADMAP.md, *Proposed for SPEC at Gate 3*):
+
+1. **SPEC v0.5:** §7 and claim 16 restated (per label, skipping repeats buys the exponent;
+   frequency order is a constant; the cost is about n^(1+α) draws); claim 18 restated as
+   tested; claims 36–43 added to §8; §9 Panel B reframed as error against labels used.
+2. **Bibliography:** the five entries never cited were removed (albalak2024survey,
+   cabannes2023scaling, kaufman2012leakage, shorten2019survey, vanbuuren2011mice).
+3. **Phases 2 and 3 committed locally,** not pushed.
+
+Gate 3 passed. Phase 4 (synthesis) started 2026-10-05. Still open: D4 (external reviewer),
+D5 (publication), and the owner's read of chapters 8–14.
+
+### D9. Gate 2 decisions (2026-10-05)
+
+The owner reviewed chapters 1–7 ("looks good") and asked the agent to move on. Applied as
+recommended in the Gate 2 report:
+
+1. **SPEC v0.4:** claims 2 and 9 restated as the evidence showed; claims 22–35 added to §8.
+2. **Headline numbers are generated from Phase 3 on:** experiment scripts publish measured
+   values into `docs/_variables.yml`, and chapters quote them with Quarto's `var` shortcode,
+   so prose cannot drift from a fresh run (the audit's main recommendation).
+
+Not decided, carried forward: committing and pushing Phase 2 (not requested; nothing is
+committed after Phase 1), and the partial decision test of SPEC §14.1 (needs human readers).
+
+Gate 2 passed. Phase 3 (chapters 8–14) started 2026-10-05.
+
+
 ### D8. Gate 1 decisions (2026-10-04)
 
 The owner accepted the Phase 1 recommendations (`ROADMAP.md`, *What Phase 1 showed*):

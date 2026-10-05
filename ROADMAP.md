@@ -109,17 +109,127 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 - T5 images: a synthetic "side" label gives exact invariance (up–down flip) and exact label
   reversal (left–right flip); digit-class labels alone have no exactly known invariance.
 
-## Phase 2: Parts I and II: planned
+## Phase 2: Parts I and II (2026-10-04 to 2026-10-05): drafted, at ⛳ Gate 2 (audit pending)
 
-Chapters 1–7; claims 1–9 and 21. Fresh-agent audit after chapter 7. ⛳ Gate 2.
+- [x] Chapters 1–7 written to the template, each researched first (research-log.md, Phase 2),
+      with a computed figure that was inspected (8 figures), data cards generated from records
+      (19 cards so far), and every checkable statement named with its test.
+- [x] Claims 1–9 and 21 pass; claims 22–35 added for statements the chapters needed
+      (selection, stratification, label noise, confident learning, aliasing, spectrogram,
+      temporal leakage, duplicates, robust scaling, smearing, quantile clipping, encodings).
+- [x] COVERAGE.md: all 27 Part I and II items present at their depth.
+- [x] Checks: ruff clean; pytest 106 passed, 8 skipped (Phase 3 stubs); render 0 warnings;
+      12,488 prose words (chapters 1,193 to 1,699 each); portability checks pass.
+- [x] Fresh-agent `learning-repo-audit` after chapter 7 (SPEC §15), 2026-10-05:
+      [`audits/2026-10-05-phase2-audit.md`](audits/2026-10-05-phase2-audit.md). No hard fails
+      or blockers; scores 4 on criteria 1–6 and 9, 3 on consistency and hygiene. All findings
+      fixed the same day (below) except the two that need the owner (commit, CI).
+- [ ] Decision test with Part II material (SPEC §14.1, partial): needs 3–5 human readers;
+      cannot be run by the agent.
+- [ ] The owner reads chapters 1–7 (SPEC §13).
 
-## Phase 3: Parts III and IV: planned
+### What Phase 2 found (evidence over the spec)
 
-Chapters 8–14; claims 10–13 and 17–20. `skeptical-review` of chapter 13. ⛳ Gate 3.
+1. **Claim 9 was wrong as worded.** Unsupervised steps (scaler, imputer) fit on train + test
+   change i.i.d. test accuracy by under 0.4 points and not consistently upward (200 seeds); the
+   large optimism comes from supervised steps (feature selection before CV: 0.825 against a
+   true 0.5). Restated in the test and in chapter 4.
+2. **Claim 2 holds only on the training points.** scikit-learn thresholds sit at node-level
+   midpoints, which nonlinear monotone transforms do not keep: up to 0.16% of new points
+   change prediction. Restated in the test and in chapter 5.
+3. **Smearing has a second failure:** with heteroscedastic noise the factor is not just biased
+   by region but unstable across seeds (from 2.1 to 11.1). New claim 31.
+4. **Confident learning's precision is set by class overlap,** from 0.999 down to 0.33 at a 20%
+   noise rate, which the chapter now leads with.
+5. **Sources not fully readable:** Duan 1983 (abstract only; the smearing formula is derived and
+   tested, and the chapter says so); Rubin 1976 (definitions taken from van Buuren 2018);
+   Kaufman et al. read in the KDD 2011 version, cited as the 2012 article.
 
-Note: SPEC §8 says "Phase 2 makes them pass", but claims 10–20 belong to Part III and IV
-chapters, which SPEC §15 schedules for Phase 3. Each stub is skipped with the phase of its
-chapter; claims 14–16 are Phase 1.
+### Audit findings and their fixes (2026-10-05)
+
+- **M1** complete-case result box too broad → limited to the mean; regressions on complete
+  cases tied to chapter 1's selection-on-x result; card updated.
+- **M2** encoding figure not reproducible (TargetEncoder shuffles folds unseeded) → seeded
+  `KFold(5, shuffle=True, random_state=s)`; figure regenerated twice, byte-identical; prose
+  number updated (cross-fit coefficient −0.05); practitioner box warns about the default.
+- **M3** chapter 1 box omitted known-s reweighting → added, with a new test showing that 1/s
+  weights undo selection on y, slowly (0.781 at n = 4,000; 0.801 at 256,000).
+- **m1** drifting prose numbers → replaced by measured ranges (0.719–0.731; 0.988–1.008; 0.34).
+- **m2** "Checked by" mismatches → chapter 5 now quotes the tests' own settings (scale 100;
+  scales 1, 100, 0.01 with offset 50) and cites the figure for scale 300; logit units stated.
+- **m3** notation → 10 symbols added to the appendix; T1's classifier coefficients renamed
+  `u, u0` in code to match the book (`w` is reserved for weights). All figures regenerated:
+  byte-identical except encoding.png.
+- **m4** stale status text → front page, README and CLAUDE.md updated.
+- **m5** "T1's features are Gaussian" → "Gaussian or exactly log-normal".
+- **m6** citation locations → confident learning's four folds cited to §5 as a default; the
+  QuantileTransformer quote now matches its context; Kaufman et al. now cited to the KDD 2011
+  paper that was read (Crossref 10.1145/2020408.2020496).
+- **m7** CI include check ignored untracked files → `git status --porcelain` check.
+- **Not fixed (owner):** the work is uncommitted, and CI has never run on GitHub.
+- **Audit suggestion, deferred to Phase 3:** generate headline numbers from scripts into
+  includes, as the data cards are, since every number discrepancy came from hand-copying.
+
+### Proposed for SPEC at Gate 2
+
+- Restate claims 2 and 9 as in the tests; add claims 22–35 to §8.
+- The tokenizer pointer stays dropped; chapter 3 says no sibling covers it.
+
+## Phase 3: Parts III and IV (2026-10-05): drafted, at ⛳ Gate 3
+
+- [x] Gate 2 passed 2026-10-05 (the owner read chapters 1–7: "looks good ... move on").
+- [x] Chapters 8–14 written to the template, each researched first (research-log.md,
+      Phase 3), with a computed, inspected figure (6 new figures; the signature figure revised)
+      and 18 new data cards (37 in all), all generated from records.
+- [x] Claims 10–13 and 17–20 pass; claims 36–43 added for statements the chapters needed
+      (balancing variance, SMOTE's gap, label-changing augmentation, shift detection, the
+      least-squares floor, how-much-data extrapolation, the scaling floor, uncertainty
+      sampling). Chapter 13 gained five tests from its review (below).
+- [x] Published numbers (D9): chapters 8–14 quote `{{< var >}}` values written by their figure
+      scripts; nothing is hand-copied.
+- [x] `skeptical-review` of chapter 13 by a fresh agent:
+      [`audits/2026-10-05-ch13-skeptical-review.md`](audits/2026-10-05-ch13-skeptical-review.md).
+      "Revise", no hard fails; every issue fixed (resolution at the end of that file).
+- [x] COVERAGE.md: all Part III and IV items ticked.
+- [x] Checks: ruff clean; pytest 142 passed; render 0 warnings; 22,257 prose words;
+      portability checks pass; mechanical checks: no missing or orphan images, no unresolved
+      citations or links.
+- [ ] The owner reads chapters 8–14 (SPEC §13).
+
+### What Phase 3 found (evidence over the spec)
+
+1. **Coverage selection gains per label, not per draw, and not from the ordering** (chapter 13
+   review, verified exactly). Labeling each new case from a uniform stream already has the
+   oracle's exponent −α per label, at β Γ(β)^(1+α) times its error (π/2 at α = 1; derived in
+   the T2 appendix and tested). It costs about n^(1+α) draws, and per draw nothing beats
+   uniform sampling. SPEC §7 and §9 attribute the gain to frequency-first selection; the
+   chapter, Panel B of the signature figure and the coverage card are revised.
+2. **Balancing tilts the posterior in a correctable way.** Undersampling and class weights
+   aim at the same target with different variance (sd 0.068 against 0.048).
+3. **SMOTE fills the gap between minority clusters only when k exceeds the cluster size.**
+4. **Importance weighting's variance explodes with shift** (computed exactly: effective n
+   about 100 of 1,000 at the largest shift shown).
+5. **Concept shift is invisible to input-only tests.**
+6. **Extrapolating how much data is needed is dominated by the floor:** with it unknown, half
+   the pilots give infinite estimates; with it known, the median is 130 against a true 230 and
+   the interval spans a factor of 95.
+7. **Scaling forms on a known floor:** a pure power law extrapolates below the entropy rate,
+   a law with a floor overestimates, and the local exponent drifts.
+8. **Active learning on noisy labels:** a 20-seed pilot suggested harm; 60 seeds showed no
+   measurable difference (ratio 1.07). Claim restated as "the gain vanishes".
+9. **Deduplication:** restated as optimism above 0.3 nats removed by deduplication, not
+   "below the entropy rate".
+10. **Sources not fully readable:** Shumailov et al.'s 2025 correction (Nature login; the
+    chapter says so); Moreno-Torres et al. read in the 2013 thesis reprint.
+
+### Proposed for SPEC at Gate 3
+
+- Add claims 36–43 to §8, as worded in the tests.
+- Restate claim 16 and §7: per label, not labeling repeats buys the exponent α and frequency
+  order a constant β Γ(β)^(1+α); the gain costs about n^(1+α) draws; per draw nothing beats
+  n^(−α/(1+α)). Restate claims 17–18 as tested.
+- §9, signature figure Panel B: error against labels used, with the exact
+  "uniform, new cases only" curve (already applied, as a correctness fix).
 
 ## Phase 4: synthesis and release: planned
 
@@ -131,6 +241,8 @@ Chapter 15, the Map, the appendices, the final audit, the success tests. Publica
 |---|---|---|
 | 0 | 2026-10-04 | 2026-10-04 |
 | 1 | 2026-10-04 | 2026-10-04 |
+| 2 | 2026-10-04 | 2026-10-05 |
+| 3 | 2026-10-05 | (Gate 3 pending) |
 
 ## Decision log
 

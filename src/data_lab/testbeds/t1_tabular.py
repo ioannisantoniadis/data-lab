@@ -14,8 +14,9 @@ independent reference used in the tests):
 
 With ``additive=True`` the target is y = a + b . z + eps instead (mean = median = a + b . z).
 
-Classification target: P(y = 1 | z) = sigmoid(w . z + c) under the target distribution p. The
-Bayes risk under p is a one-dimensional integral, because w . z is Gaussian.
+Classification target: P(y = 1 | z) = sigmoid(u . z + u0) under the target distribution p. The
+Bayes risk under p is a one-dimensional integral, because u . z is Gaussian. (The book's
+notation: u, u_0; w is reserved for per-example weights.)
 
 Covariate shift: the training distribution q draws z ~ N(0, Sigma); the target p draws
 z ~ N(delta, Sigma). The density ratio p(z)/q(z) = exp(delta' S^-1 z - delta' S^-1 delta / 2)
@@ -46,14 +47,14 @@ class TabularGenerator:
     gamma: float = 0.0
     additive: bool = False
     # classification
-    w: np.ndarray = field(default_factory=lambda: np.array([1.5, -1.0, 0.5]))
-    c: float = 0.0
+    u: np.ndarray = field(default_factory=lambda: np.array([1.5, -1.0, 0.5]))
+    u0: float = 0.0
 
     def __post_init__(self) -> None:
         self.b = np.asarray(self.b, dtype=float)[: self.d]
-        self.w = np.asarray(self.w, dtype=float)[: self.d]
-        if self.b.size != self.d or self.w.size != self.d:
-            raise ValueError("b and w need at least d entries")
+        self.u = np.asarray(self.u, dtype=float)[: self.d]
+        if self.b.size != self.d or self.u.size != self.d:
+            raise ValueError("b and u need at least d entries")
         if not -1.0 / max(self.d - 1, 1) < self.rho < 1.0:
             raise ValueError("rho must keep the equicorrelation matrix positive definite")
 
@@ -102,13 +103,13 @@ class TabularGenerator:
 
     def posterior(self, z: np.ndarray) -> np.ndarray:
         """P(y = 1 | z) under the target distribution p."""
-        return expit(z @ self.w + self.c)
+        return expit(z @ self.u + self.u0)
 
     def sample_labels(self, z: np.ndarray, rng: np.random.Generator) -> np.ndarray:
         return (rng.random(len(z)) < self.posterior(z)).astype(int)
 
     def prior(self, shift=None) -> float:
-        """P(y = 1) under z ~ N(shift, Sigma): a 1-D Gaussian integral over t = w . z + c."""
+        """P(y = 1) under z ~ N(shift, Sigma): a 1-D Gaussian integral over t = u . z + u0."""
         loc, scale = self._score_moments(shift)
         val, _ = integrate.quad(
             lambda t: expit(t) * stats.norm.pdf(t, loc, scale), loc - 12 * scale, loc + 12 * scale
@@ -126,9 +127,25 @@ class TabularGenerator:
         )
         return val
 
+    def threshold_risk(self, tau: float, shift=None) -> float:
+        """Clean 0-1 risk of predicting 1 exactly when eta(z) > tau (tau = 1/2: Bayes risk)."""
+        loc, scale = self._score_moments(shift)
+        cut = float(np.log(tau / (1 - tau)))  # eta > tau  <=>  score > logit(tau)
+        val, _ = integrate.quad(
+            lambda t: (1 - expit(t) if t > cut else expit(t)) * stats.norm.pdf(t, loc, scale),
+            loc - 12 * scale,
+            loc + 12 * scale,
+            points=[cut],
+        )
+        return val
+
+    def score(self, z: np.ndarray) -> np.ndarray:
+        """The classification score u . z + u0; eta = sigmoid(score)."""
+        return z @ self.u + self.u0
+
     def _score_moments(self, shift):
         mean = np.zeros(self.d) if shift is None else np.asarray(shift, dtype=float)
-        return float(self.w @ mean + self.c), float(np.sqrt(self.w @ self.cov @ self.w))
+        return float(self.u @ mean + self.u0), float(np.sqrt(self.u @ self.cov @ self.u))
 
     def sample_with_prior(
         self, n: int, prior: float, rng: np.random.Generator

@@ -36,4 +36,5 @@ jobs:
       - name: Generated includes are current
         run: |
           uv run python scripts/technique_data.py
-          git diff --exit-code docs/includes
+          # fails on modified *or* untracked generated files
+          test -z "$(git status --porcelain docs/includes)"

@@ -47,6 +47,34 @@ escape it. What remains is the tail mass itself. This selector needs an oracle t
 knows which features are already covered, and it knows their frequency order. Checked by
 `::test_coverage_selection_beats_uniform_at_derived_rate`.
 
+It is also optimal: any $n$ distinct labeled features leave at least this mass, because
+features $1, \dots, n$ are the most probable
+(`::test_any_n_labels_cost_at_least_the_tail_mass`).
+
+**The deduplicated stream.** Drop the second oracle: read the uniform stream and label each
+feature the first time it appears. After $m$ draws, the labels used and the error are, exactly,
+
+$$
+\mathbb{E}[D_m] = \sum_i 1 - (1 - p_i)^m, \qquad E_m = \sum_i p_i (1 - p_i)^m .
+$$
+
+Writing $p_i = A\,i^{-s}$ with $A = 1/\zeta(s)$, $s = \alpha + 1$, $\beta = \alpha/(1+\alpha)$,
+the integral approximation behind Hutter's eq. 4 gives
+$\mathbb{E}[D_m] \approx \Gamma(\beta)\,(Am)^{1/s}$ and
+$E_m \approx A^{1/s}\,\Gamma(\beta)\,m^{-\beta}/s$. Eliminating $m$, at $n$ labels
+
+$$
+E \approx \frac{A\,\Gamma(\beta)^{s}}{s}\,n^{-\alpha}
+= \beta\,\Gamma(\beta)^{1+\alpha}\cdot\frac{A\,n^{-\alpha}}{\alpha}
+\approx \beta\,\Gamma(\beta)^{1+\alpha}\,E^{\text{oracle}}_n ,
+$$
+
+the oracle's exponent at a constant factor ($\pi/2$ at $\alpha = 1$), reached after
+$m \approx (n/\Gamma(\beta))^{s}/A$ draws. Both are checked against the exact pair
+(`::test_deduplicated_stream_reaches_the_oracle_exponent_per_label`,
+`::test_deduplicated_stream_pays_n_to_the_one_plus_alpha_draws`), and the pair against
+simulation (`::test_deduplicated_stream_exact_curve_matches_simulation`).
+
 **A selector that knows nothing about $p$.** A realistic selector sees an unlabeled pool of $M$
 draws from $p$, ranks the distinct features by how often they occur in the pool (ties broken at
 random), and labels the top $n$. Whatever the pool, the features it leaves unlabeled include:
@@ -72,7 +100,7 @@ where $E_M$ is the uniform learning curve at the pool size (checked by
   $-1.01$ over the same ten sets of seeds, at about 1.5 times the oracle's error
   (`::test_superlinear_pool_approaches_the_oracle_exponent`).
 
-![Panel A: exact expected error of the memorizing learner under uniform sampling for three Zipf exponents, with Monte Carlo means (200 seeds, circles) and the asymptote $c\,n^{-\alpha/(1+\alpha)}$ (dashed). Panel B, at $\alpha = 1$ and equal labeled budget: uniform sampling and the oracle coverage selector (both exact), and a selector that ranks features by their count in an unlabeled pool of $M$ draws (median and 10–90% band over 12–60 seeds). The tail sets the power law; selecting for coverage steepens it only with an oracle or a pool growing like $n^{1+\alpha}$. At small $n$ the $M = n^2$ pool is smaller than $100\,n$, which is why its line starts above.](images/long_tail_signature.png){#fig-long-tail-signature}
+![Panel A: exact expected error of the memorizing learner under uniform sampling for three Zipf exponents, with Monte Carlo means (200 seeds, circles) and the asymptote $c\,n^{-\alpha/(1+\alpha)}$ (dashed). Panel B, at $\alpha = 1$, error against labels used: uniform sampling labeling every draw, the same stream labeling only cases not seen before, and the oracle coverage selector, the lower bound for any $n$ labels (all exact); and a selector that ranks cases by their count in an unlabeled pool of $M$ draws (median and 10–90% band). The tail sets the power law; skipping repeats steepens it per label, frequency order adds only a constant, and the steeper slope costs an unlabeled stream or pool growing like $n^{1+\alpha}$.](images/long_tail_signature.png){#fig-long-tail-signature}
 
 @fig-long-tail-signature is the book's signature figure. It shows the argument of
 [Why Power Laws: The Long Tail](chapters/13-why-power-laws.qmd#sec-long-tail). Dohmatob et al.

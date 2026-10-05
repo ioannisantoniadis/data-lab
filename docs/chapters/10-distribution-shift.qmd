@@ -1,27 +1,138 @@
 # Distribution Shift {#sec-shift}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
-
-## Planned coverage {.unnumbered}
-
-- The shift taxonomy (S)
-- Shift detection (two-sample test on the testbed) (D)
+Every earlier chapter assumed that the target distribution $p$ stands still and that the only
+gap between training and deployment is how $q$ was drawn from it. Deployment does not stand
+still: users change, sensors drift, prices move. When the world itself moves, the training data
+describes a distribution that no longer exists. This chapter names the kinds of shift by which
+part of $p$ changes, shows which kinds can be detected without labels, and says which of the
+levers can repair each kind.
 
 ## The problem
 
+A model is trained on data from one period and used in the next. Has the distribution changed?
+If so, in a way that matters to the model, in a way that can be corrected, or only in a way that
+new labels can reveal?
+
 ## Assumptions
+
+1. **Shift happens between periods, not within them.** Data within a period is i.i.d.; gradual
+   drift is approximated by comparing a recent window with a reference window.
+2. **One kind of shift at a time.** Real shifts mix kinds, and the taxonomy below describes the
+   pure cases.
+3. **Input-only tests see only inputs.** A test that compares the inputs of two periods can
+   detect a change in $p(x)$ and nothing else. Detecting anything else requires labels.
 
 ## Derivation or demonstration
 
+**A taxonomy by which factor changes.** Moreno-Torres et al. unify the terms used across the
+literature [@morenotorres2012unifying, Definitions 1–4]. *Dataset shift* is any difference
+between the joint training and test distributions. Three special cases are distinguished by
+which factor of the joint changes:
+
+- **covariate shift** "appears only in X→Y problems", where inputs cause the label: $p(y \mid x)$
+  is unchanged and $p(x)$ changes;
+- **prior probability shift** "appears only in Y→X problems", where the label causes the
+  inputs: $p(x \mid y)$ is unchanged and $p(y)$ changes;
+- **concept shift**: the conditional changes ($p(y \mid x)$ in X→Y problems, $p(x \mid y)$ in Y→X
+  problems) while the other factor does not.
+
+The distinction is causal: which factor stays fixed depends on the direction of cause. It
+decides the remedy. Under covariate shift, importance weighting by $p(x)/q(x)$ re-targets the
+risk ([Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling)). Under prior shift,
+the prior-shift correction re-targets the posterior, and EM estimates the new prior from
+unlabeled data. Under concept shift, no reweighting of old examples can help: the old labels
+answer a question that is no longer asked.
+
+**Detecting shift.** A classifier two-sample test "pair[s] the n examples in $S_P$ with a
+positive label, and … the m examples in $S_Q$ with a negative label"; if the two samples come
+from the same distribution, "the classification accuracy of a binary classifier on a held-out
+subset … should remain near chance-level" [@lopezpaz2016revisiting, abstract]. The testbed's
+version fits a logistic regression on half of each sample. It then tests whether the classifier's
+scores on the held-out halves separate the two samples, using a one-sided Mann–Whitney U test.
+That test is valid when there is no shift, because the held-out scores are then exchangeable.
+Over 400 no-shift seeds its p-values were uniform
+(`tests/test_shift_detection.py::test_classifier_two_sample_test_is_calibrated_under_no_shift`).
+For comparison, a simpler test runs a Kolmogorov–Smirnov test on each feature and corrects
+for the three tests.
+
+On T1, with 500 examples in each sample and 200 seeds:
+
+- **no shift:** the two tests rejected at rates {{< var ch10.none_c2st >}} and
+  {{< var ch10.none_ks >}}, at a level of 0.05;
+- **covariate shift:** moving the mean of $z_1$ by 0.1 standard deviations was detected
+  {{< var ch10.cov01_c2st >}} of the time by the classifier test; by 0.3 standard deviations,
+  {{< var ch10.cov03_c2st >}} and {{< var ch10.cov03_ks >}};
+- **prior shift** from a class share of 0.5 to 0.3 changes $p(x)$, because $p(x)$ is a mixture of
+  the classes: detected {{< var ch10.prior_c2st >}} and {{< var ch10.prior_ks >}} of the time;
+- **concept shift**, the same inputs labeled by a different rule: {{< var ch10.concept_c2st >}}
+  and {{< var ch10.concept_ks >}}, no more than with no shift. A labeled check, the deployed
+  model's accuracy on 500 labeled new examples, detected the concept shift
+  {{< var ch10.concept_labeled >}} of the time, and fired {{< var ch10.none_labeled >}} of the time
+  with no shift
+  (`tests/test_shift_detection.py::test_input_tests_detect_covariate_and_prior_shift_not_concept_shift`).
+
+::: {.callout-note title="Result: you can detect only what you observe"}
+A test that compares inputs can detect any change in $p(x)$: covariate shift, and prior shift
+whenever the classes differ in their inputs. Its power grows with the size of the shift and
+the size of the samples. Concept shift leaves $p(x)$ unchanged, so no input-only test can see
+it; only labels from the new period can.
+:::
+
+{{< include ../includes/cards/shift-detection.md >}}
+
+**Evidence that shift is common.** Recht et al. built new test sets for CIFAR-10 and ImageNet
+following the original collection procedures. The paper reports "accuracy drops of 3% – 15% on
+CIFAR-10 and 11% – 14% on ImageNet" across a broad range of models. It attributes them not to
+test-set reuse ("adaptivity") but to "the models' inability to generalize to slightly 'harder'
+images than those found in the original test sets" [@recht2019imagenet, abstract]. This is one
+study, of two image benchmarks, as of its 2019 publication. It shows that even a careful
+replication of a data-generating process produces a shift large enough to matter.
+
+::: {.callout-note title="In practice"}
+`scipy.stats.ks_2samp` compares one feature between two samples; with many features, correct
+for the number of tests. A classifier two-sample test needs only a classifier and a held-out
+half. Monitor labeled performance wherever labels arrive, however late: input monitoring
+cannot see concept shift.
+:::
+
 ## What it does to the learned model
+
+Shift does not change the model. It changes what the model's fixed decisions are worth. Under
+covariate shift the model is right where it was right, but it is now asked more often where it
+saw few examples. Under prior shift its probabilities are miscalibrated by a factor that can be
+estimated and removed. Under concept shift it is confidently wrong in a way that its inputs do
+not reveal.
 
 ## Failure modes
 
+![Panel A: rejection rate of a classifier two-sample test and of per-feature Kolmogorov–Smirnov tests (500 examples per sample, level 0.05, 200 seeds) as the mean of one feature shifts. Panel B: the same tests, and a labeled accuracy check, under no shift, prior shift and concept shift. Shifts in the inputs are detectable from inputs; concept shift is visible only through labels.](../images/distribution_shift.png){#fig-distribution-shift}
+
+@fig-distribution-shift shows the detection results. The failures:
+
+- **Watching inputs, missing concepts.** A dashboard of feature distributions stays green
+  while the rule linking features to outcomes changes (panel B).
+- **Small shifts, small samples.** At 0.1 standard deviations, 500 examples per window
+  detected the shift in about one seed in ten (panel A).
+- **Detected but harmless, or undetected but harmful.** A test answers whether $p(x)$ changed,
+  not whether the model got worse. A shift in a feature the model ignores raises an alarm; a
+  shift concentrated where the model is weak may not.
+- **The wrong correction.** Applying a prior-shift correction to a covariate shift, or
+  importance weights to a concept shift, corrects a factor that did not change.
+
 ## What the toy cannot show
+
+T1's shifts are clean: one factor changes, by a known amount, at a known time. Real shifts mix
+kinds, drift gradually, and arrive with labels that are late, sparse or biased. The
+demonstrations show what each test can see in principle, not what it will catch in a given
+monitoring setup.
 
 ## Connections
 
-- [Augmentation](09-augmentation.qmd#sec-augmentation): the neighboring chapter.
-- [Learning Curves](11-learning-curves.qmd#sec-learning-curves): the neighboring chapter.
+- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): the corrections for
+  covariate shift (importance weights) and prior shift (Saerens et al.'s correction and EM).
+- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): selection on $x$
+  and selection on $y$ are the collection-time versions of covariate and concept-like shift.
+- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): time-ordered evaluation,
+  the minimum that a world that drifts requires.
+- [modern-ai-systems-and-methods, ML Systems and MLOps](https://ioannisantoniadis.github.io/modern-ai-systems-and-methods/chapters/17-ml-systems-mlops.html):
+  drift monitoring in production systems.

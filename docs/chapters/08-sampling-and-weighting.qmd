@@ -1,30 +1,185 @@
 # Sampling and Weighting {#sec-sampling}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
-
-## Planned coverage {.unnumbered}
-
-- Resampling vs. reweighting vs. threshold, and their effect on calibrated probabilities (D)
-- Prior-shift correction (EM, Saerens et al.) (D)
-- SMOTE (with a failure case at D) (S)
-- Importance weighting under known covariate shift, including its variance (D)
+Part III turns from what each example looks like to which examples the model sees, and how much
+each one counts. Two levers do this: the sampling distribution $q$ and the per-example weights
+$w$. They are the same two levers that [rl-for-llms](https://ioannisantoniadis.github.io/rl-for-llms/chapters/02-policy-gradients.html)
+uses to describe every policy-gradient method. Here they describe class rebalancing, prior
+correction, importance weighting and synthetic oversampling. This chapter derives what each one
+does to the learned probabilities, shows that resampling and reweighting aim at the same
+target, and measures what they cost.
 
 ## The problem
 
+A fraud detector trains on transactions in which 1 in 20 is fraud; a disease screen, on
+patients of whom few are sick. Common advice says to balance the classes: undersample the
+majority, weight the minority up, or synthesize minority examples. What does the model then
+learn, and does it still estimate the probability the deployment needs? And when the inputs
+seen in training differ from those met in deployment, can weights make up the difference?
+
 ## Assumptions
+
+1. **Prior shift.** Rebalancing changes the class proportions and nothing else:
+   $q(x \mid y) = p(x \mid y)$. This holds when examples are chosen by their label only. Saerens
+   et al. state this condition [@saerens2002adjusting, §2.2], and it is what King and Zeng call
+   choice-based sampling [@king2001logistic].
+2. **Covariate shift.** For importance weighting, inputs are drawn differently but labels follow
+   the same rule, $q(y \mid x) = p(y \mid x)$. Wherever $p(x) > 0$, also $q(x) > 0$, and the
+   density ratio $w(x) = p(x)/q(x)$ is known. The
+   [next chapter but one](10-distribution-shift.qmd#sec-shift) treats the case where it must be
+   estimated.
+3. **A well-specified, flexible enough model.** The demonstrations use logistic regression on
+   T1, whose true posterior is logistic, so differences come from the data, not the model.
 
 ## Derivation or demonstration
 
+**What balancing does to the posterior.** By Bayes' rule, a model trained where class $y$ has
+prior $q(y)$ learns $q(y \mid x) \propto p(x \mid y)\, q(y)$, while the target is
+$p(y \mid x) \propto p(x \mid y)\, p(y)$. Under assumption 1 the likelihoods cancel in the
+ratio:
+
+$$
+p(y \mid x) = \frac{q(y \mid x)\, p(y)/q(y)}{\sum_{y'} q(y' \mid x)\, p(y')/q(y')}.
+$$
+
+This is Saerens et al.'s eq. 4: the posterior under training conditions, "weighted by the
+ratio of the new priors to the old priors" and renormalized [@saerens2002adjusting]. For a
+logistic model it reduces to King and Zeng's prior correction: subtract
+$\ln\big[\tfrac{1-\tau}{\tau}\,\tfrac{\bar y}{1-\bar y}\big]$ from the intercept, where $\tau$
+is the population fraction of ones and $\bar y$ the sample's [@king2001logistic, eq. 7]. A test
+confirms that the two corrections agree to machine precision
+(`tests/test_imbalance.py::test_king_zeng_intercept_correction_equals_saerens_for_logit`).
+
+On T1 with {{< var ch8.prior >}} positives (30 seeds, 20,000 examples each), a plain logistic
+regression's predicted probabilities sat on average {{< var ch8.plain_err >}} from the true
+posterior. Trained on a balanced undersample, the distance rose to
+{{< var ch8.under_err >}}; with balanced class weights, {{< var ch8.weighted_err >}}. After the
+correction from a training prior of 1/2 back to the true prior, the distances were
+{{< var ch8.under_corr_err >}} and {{< var ch8.weighted_corr_err >}}
+(`tests/test_imbalance.py::test_prior_shift_correction_restores_calibration`).
+
+::: {.callout-note title="Result: rebalancing changes the probabilities, not the ranking"}
+Training with class priors $q(y)$ instead of $p(y)$, by resampling or by weighting, makes the
+model learn $q(y \mid x)$, the true posterior tilted by $q(y)/p(y)$. Multiplying the output by
+$p(y)/q(y)$ and renormalizing undoes the tilt exactly. At a threshold of 1/2, a model trained
+on balanced classes decides as the true posterior would at a threshold equal to the true prior
+(`tests/test_imbalance.py::test_balanced_threshold_at_one_half_is_the_prior_threshold`).
+:::
+
+So "balance the classes" and "lower the threshold" are the same decision rule. The first
+changes the data and also destroys calibration; the second changes only the rule.
+
+**Same target, different variance.** Undersampling pulls the $q$ lever: it discards majority
+examples. Class weights pull the $w$ lever: they keep every example and count the minority
+more. Both lead to the same tilted posterior. Over 30 seeds the coefficient on $z_1$ averaged
+{{< var ch8.under_coef_mean >}} with undersampling and {{< var ch8.weighted_coef_mean >}} with
+weights; the truth is 1.5. Its standard deviation across seeds was
+{{< var ch8.under_coef_sd >}} with undersampling and {{< var ch8.weighted_coef_sd >}} with weights
+(`tests/test_imbalance.py::test_resampling_and_reweighting_share_a_target_not_a_variance`). The
+lever decides the variance, not the target.
+
+{{< include ../includes/cards/balanced-resampling.md >}}
+
+{{< include ../includes/cards/class-weights.md >}}
+
+**When the target prior is unknown.** A model is deployed where the class mix has changed by an
+unknown amount. If only the prior changed, Saerens et al. estimate it from the unlabeled new
+data by EM. They start from the training prior, correct the posteriors to the current estimate
+with eq. 4, and set the next estimate to the corrected posteriors' average (their eq. 9),
+until it stops moving. On T1, with a model trained at prior 0.5 and 5,000 unlabeled examples
+drawn at prior 0.1, the estimate averaged {{< var ch8.em_mean >}} over 20 seeds and ranged
+from {{< var ch8.em_min >}} to {{< var ch8.em_max >}}
+(`tests/test_imbalance.py::test_em_prior_estimation_recovers_test_prior`).
+
+{{< include ../includes/cards/prior-shift-correction.md >}}
+
+**Importance weighting.** Under covariate shift, labels follow the same rule but inputs are
+drawn from $q$ instead of $p$. Any average under $p$ can then be written as a weighted average
+under $q$:
+
+$$
+\mathbb{E}_{p}[\ell] = \mathbb{E}_{q}\big[w(x)\,\ell\big], \qquad w(x) = \frac{p(x)}{q(x)} .
+$$
+
+The weighted sample mean is therefore unbiased. Its variance is
+$\big(\mathbb{E}_q[w^2 \ell^2] - R^2\big)/n$, and $\mathbb{E}_q[w^2]$ grows quickly with the
+shift. For Gaussian $q = \mathcal{N}(0, \Sigma)$ and $p = \mathcal{N}(\delta, \Sigma)$, it equals
+$\exp(\delta^\top \Sigma^{-1} \delta)$. On T1, estimating the risk of a fixed classifier under
+$p$ from 1,000 examples of $q$, the weighted estimate was unbiased at every shift: at the
+largest, it averaged {{< var ch8.iw_mean_last >}} against an exact {{< var ch8.iw_truth_last >}}.
+The unweighted estimate stayed at {{< var ch8.naive_mean >}}. The standard deviation of the
+weighted estimate grew from {{< var ch8.iw_sd_first >}} to {{< var ch8.iw_sd_last >}}, as
+$\mathbb{E}_q[w^2]$ grew from 1 to {{< var ch8.w2_last >}}. The variance is known in closed
+form here, and its value lay inside the bootstrap interval of the measured variance at every
+shift (`tests/test_shift.py::test_importance_weighting_unbiased_with_growing_variance`).
+
+{{< include ../includes/cards/importance-weighting.md >}}
+
+**Synthetic minority examples.** SMOTE oversamples the minority class by "taking each minority
+class sample and introducing synthetic examples along the line segments joining any/all of the
+k minority class nearest neighbors" [@chawla2002smote, §4.2]. Each synthetic point is a minority
+example plus a uniform fraction of the difference to one of its neighbors. It assumes the space
+between nearby minority examples belongs to the minority class.
+
+{{< include ../includes/cards/smote.md >}}
+
+::: {.callout-note title="In practice"}
+scikit-learn's `class_weight="balanced"` sets each class's weight to
+`n_samples / (n_classes * np.bincount(y))` (scikit-learn 1.9). The rebalanced model's
+`predict_proba` is then tilted; correct it with the prior ratio, or keep the plain model and
+choose the threshold the decision needs. Resample or synthesize inside each training fold, never
+before splitting ([Cleaning](04-cleaning.qmd#sec-cleaning)).
+:::
+
 ## What it does to the learned model
+
+Rebalancing does not teach the model anything new about the minority class. It changes the
+prior the model believes in. The ranking of examples, and hence any threshold-free metric,
+is unchanged in expectation. The probabilities are inflated by a known factor that can be
+removed. What rebalancing does change is the variance, through the lever used: discarding
+examples costs precision, and weighting does not.
+
+Importance weighting changes the target from $q$ to $p$ at a price paid in effective sample
+size. At the largest shift here, 1,000 weighted examples estimate the risk under $p$ about as
+precisely as {{< var ch8.n_eff_last >}} unweighted examples drawn from $p$ itself would: the
+weighted estimate's exact variance equals that of a plain average of about that many losses.
 
 ## Failure modes
 
+![Panel A: on T1 with 5% positives, predicted probability against the true posterior, for a plain model, one trained on a balanced undersample, one with balanced class weights, and the undersampled model after prior correction. Panel B: the coefficient on $z_1$ over 30 seeds, undersampling against class weights (truth 1.5). Panel C: importance-weighted and unweighted estimates of the risk under a shifted $p$ from 1,000 examples of $q$, against the exact risk (500 seeds). Panel D: share of SMOTE's synthetic points in the gap between two minority clusters of 20 examples, by neighbor count (50 seeds). Balancing tilts probabilities in a correctable way; the lever sets the variance; importance weights trade bias for variance; SMOTE fills gaps once $k$ exceeds a cluster.](../images/sampling_weighting.png){#fig-sampling-weighting}
+
+@fig-sampling-weighting shows the four effects. The failure modes:
+
+- **Uncorrected probabilities.** A rebalanced model used where probabilities matter (pricing,
+  triage, combining with other evidence) overstates the minority class at every input (panel A).
+- **Weights that explode.** Importance weights are heavy-tailed when $q$ is thin where $p$ is
+  not. At the largest shift, the bootstrap interval for the estimator's own variance spans a
+  factor of {{< var ch8.boot_ratio_last >}} (panel C): even its precision is hard to measure. An estimated density ratio, which practice requires, adds its
+  own error where data is sparse.
+- **SMOTE across gaps.** With 20 minority examples split into two separated clusters, SMOTE with
+  up to 5 neighbors put {{< var ch8.smote_gap_k5 >}}% of its synthetic points in the gap between
+  them, against a true {{< var ch8.smote_true_gap >}}%. With 15 neighbors, more than a cluster
+  holds, it put {{< var ch8.smote_gap_k15 >}}% there
+  (`tests/test_imbalance.py::test_smote_fills_the_gap_when_k_exceeds_cluster_size`). Those
+  points are minority labels in majority territory.
+- **A prior shift that is not one.** If $p(x \mid y)$ also changed (a new kind of fraud, not more
+  of the old kind), eq. 4 and EM correct the wrong thing.
+
 ## What the toy cannot show
+
+T1's posterior is exactly logistic, its density ratio is known in closed form, and its
+minority clusters are Gaussian. Real class-conditional distributions change along with the
+priors, density ratios must be estimated, and the geometry of a minority class is unknown. The
+demonstrations show what each lever targets and what it costs, not how well a given estimate of
+a prior or a ratio will work on real data.
 
 ## Connections
 
-- [Encoding and Features](07-encoding-and-features.qmd#sec-encoding): the neighboring chapter.
-- [Augmentation](09-augmentation.qmd#sec-augmentation): the neighboring chapter.
-- [rl-for-llms, Policy Gradients](https://ioannisantoniadis.github.io/rl-for-llms/chapters/02-policy-gradients.html): owns the $(q, w)$ weighted-likelihood view this chapter applies to data.
+- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): selection with a
+  known probability is undone by the same $1/s$ weights; importance weighting is that idea
+  under covariate shift.
+- [Labels](02-labels.qmd#sec-labels): the noisy-label posterior is also a known transform of the
+  clean one, corrected by the same kind of algebra.
+- [Distribution Shift](10-distribution-shift.qmd#sec-shift): how to tell covariate, prior and
+  concept shift apart, and how to detect them.
+- [rl-for-llms, Policy Gradients](https://ioannisantoniadis.github.io/rl-for-llms/chapters/02-policy-gradients.html):
+  the same $(q, w)$ pair, where the learner chooses its own samples and weights them.

@@ -1,14 +1,18 @@
-"""Claim tests: Part IV, deduplication (SPEC §8 claim 18; T4).
+"""Claim tests: Part IV, deduplication (SPEC §8 claim 18; T4)."""
 
-Stubs from Phase 0: each test is named after its claim and skipped until the phase that
-implements it. Unskip only when the test checks the claim numerically against ground truth.
-"""
+import numpy as np
 
-import pytest
+from data_lab.selection import dedup_experiment
 
 
-@pytest.mark.skip(reason="Phase 3: claim 18 not yet implemented")
 def test_deduplication_reduces_overlap_optimism():
-    """Claim 18. Removing duplicates from T4 lowers the test cross-entropy optimism caused by
-    train/test overlap.
-    """
+    """Claim 18. With duplicates in a text corpus (50 of 400 documents copied 5 extra times)
+    and a model that can memorize (a trigram model on T4), a test split that overlaps the
+    training split reports a cross-entropy more than 0.3 nats below the same model's
+    cross-entropy on fresh documents, in every seed. Removing duplicates before splitting brings
+    the measured value to within 0.15 nats of the fresh-document value (20 seeds)."""
+    res = dedup_experiment()
+    optimism = res["fresh"] - res["contaminated"]
+    optimism_dedup = res["fresh_dedup"] - res["dedup"]
+    assert np.all(optimism > 0.3)
+    assert np.all(np.abs(optimism_dedup) < 0.15)

@@ -117,7 +117,8 @@ def save_figure(fig, slug: str, images_dir: Path | None = None) -> Path:
     out_dir = IMAGES if images_dir is None else Path(images_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"{slug}.png"
-    fig.tight_layout()
+    if fig.get_layout_engine() is None:
+        fig.tight_layout()
     fig.savefig(path, dpi=FIGURE_DPI, facecolor=SURFACE, bbox_inches="tight")
     plt.close(fig)
     try:

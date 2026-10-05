@@ -1,29 +1,141 @@
 # Augmentation {#sec-augmentation}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 3 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
-
-## Planned coverage {.unnumbered}
-
-- Augmentation as invariance (testbed with a known invariance) (D)
-- Label-changing augmentation (D)
-- Mixup (S)
-- SpecAugment and RandAugment (S)
+Augmentation creates training data from training data: flip an image, crop it, mask part of a
+spectrogram, and train on the copies as if they were new. It is usually presented as a bag of
+tricks that "add data". Each trick carries an assumption, though: that the transformed copy has
+a label you know. That assumption is a claim about the target distribution $p$, and it can be
+false. This chapter treats augmentation as what it is on the four levers, a change to the
+sampling distribution $q$ that is justified only by an assumption, and measures what happens
+when the assumption is true, false, and false but known.
 
 ## The problem
 
+Given a transform $T$ of the inputs (a flip, a shift, a mask), training on the pairs
+$(T(x), y)$ adds them to $q$. Does that help, and when can it hurt? And what about transforms
+that change the label, or mix two examples together?
+
 ## Assumptions
+
+1. **A label-preserving augmentation assumes invariance:** $p(y \mid T(x)) = p(y \mid x)$ for
+   every transform used, at every strength used. If that fails, the augmented pairs are
+   mislabeled examples.
+2. **A label-changing augmentation assumes a known effect:** the label of $T(x)$ is a known
+   function of the label of $x$.
+3. **The demonstration uses a label with exactly known symmetries.** As
+   [Data Types and Their Structure](03-data-types.qmd#sec-data-types) noted, real labels rarely
+   have invariances that hold exactly. T5's synthetic "side" label does: on the bundled digit
+   images, it is 1 when the left half holds more ink than the right. An up–down flip leaves it
+   unchanged; a left–right flip reverses it
+   ([The Testbeds](../appendix-testbeds.qmd#sec-testbed-t5)).
 
 ## Derivation or demonstration
 
+**Augmentation is a change to $q$.** Training on the original pairs plus their transforms
+changes the training distribution to a mixture of $q$ and its image under $T$. If assumption 1
+holds, every added pair is a pair that $p$ could have produced. The model then sees more of the
+target distribution, and its estimate varies less. If assumption 1 fails, the added pairs carry
+labels $p$ would not give, which is label noise of a systematic kind
+([Labels](02-labels.qmd#sec-labels)).
+
+**Demonstration on T5.** A logistic regression (scikit-learn's defaults, $C = 1$) is trained on
+$n$ of the {{< var ch9.n_images >}} digit images with a tie-free side label, and tested on the
+rest; 20 seeds. Four training sets:
+
+- **no augmentation;**
+- **up–down flips with the same label:** a true invariance;
+- **left–right flips with the same label:** a false invariance, since the flip reverses the
+  label;
+- **left–right flips with the label reversed:** a label-changing augmentation whose effect is
+  known.
+
+With $n = 10$ images, test accuracy was {{< var ch9.none_10 >}} without augmentation,
+{{< var ch9.inv_10 >}} with the true invariance, {{< var ch9.chg_10 >}} with the label-changing
+flip, and {{< var ch9.wrong_10 >}} with the false invariance. With $n = 400$ the four were
+{{< var ch9.none_400 >}}, {{< var ch9.inv_400 >}}, {{< var ch9.chg_400 >}} and
+{{< var ch9.wrong_400 >}}
+(`tests/test_augmentation.py::test_invariant_augmentation_helps_noninvariant_hurts` and
+`::test_label_changing_augmentation_helps_when_the_change_is_known`).
+
+::: {.callout-note title="Result: an augmentation is as good as its assumption"}
+Augmenting with transforms the target is invariant to adds examples $p$ could have produced. It
+never hurt here, and helped most when data was scarce. Augmenting with a transform the target
+is not invariant to, keeping the label, adds systematically wrong labels; here it hurt at every
+training size, and more data did not close the gap. A transform that changes the label is
+valuable once the change is known: labeling the copies accordingly turned the most damaging
+augmentation into the most useful one.
+:::
+
+{{< include ../includes/cards/invariant-augmentation.md >}}
+
+{{< include ../includes/cards/label-changing-augmentation.md >}}
+
+**Augmentation policies.** In practice, augmentations are applied as randomized policies.
+RandAugment reduces a learned policy to two numbers: "N: Number of augmentation transformations
+to apply sequentially" and "M: Magnitude for all the transformations", applied to transforms
+drawn from a fixed list of 14 [@cubuk2019randaugment, Figure 2]. SpecAugment acts on the log mel
+spectrogram of speech with three transforms. Time warping deforms the time axis. Frequency
+masking blanks $f$ consecutive mel channels, with $f$ drawn uniformly from 0 to a parameter $F$.
+Time masking blanks $t$ consecutive time steps, with $t$ drawn uniformly from 0 to a parameter
+$T$ [@park2019specaugment, §2]. Both control the strength of the invariance assumption with a
+single magnitude, and the result above says why the strength matters. A transform the target
+tolerates when mild can change it when strong: a small shift keeps a digit, while a large one
+can push it out of the frame.
+
+**mixup.** mixup trains on mixtures of pairs:
+$\tilde x = \lambda x_i + (1 - \lambda)\,x_j$ and $\tilde y = \lambda y_i + (1 - \lambda)\,y_j$, with
+$\lambda \sim \mathrm{Beta}(\alpha, \alpha)$. Its authors frame it as a "vicinal" distribution
+around the training data, in the Vicinal Risk Minimization tradition [@zhang2017mixup, §2]. On
+the levers it changes both $q$ (new inputs between examples) and the labels (soft ones). Its
+assumption is different from a symmetry: the target changes linearly along the segment between
+two examples. A test checks the implementation against that definition
+(`tests/test_augmentation.py::test_mixup_forms_the_same_convex_combination_of_inputs_and_labels`).
+
+{{< include ../includes/cards/mixup.md >}}
+
+::: {.callout-note title="In practice"}
+Apply augmentation to training batches only, inside each fold, never to validation or test
+data. Choose transforms by asking, for each one and each strength, whether the label provably
+survives. Where a transform changes the label in a known way, apply the change instead of
+dropping the transform.
+:::
+
 ## What it does to the learned model
+
+A label-preserving augmentation that is true is the cheapest data there is. It moves the model
+toward the invariance it encodes and reduces variance, which matters most when $n$ is small. A
+false one teaches the model a contradiction: in the demonstration, every image and its mirror
+carry the same label although they have opposite true labels. The model can no longer separate
+the two cases. Its accuracy then stayed between {{< var ch9.wrong_min >}} and
+{{< var ch9.wrong_max >}} across training sizes, against 0.5 for guessing.
 
 ## Failure modes
 
+![Panel A: a digit image, its up–down flip and its left–right flip, with the synthetic side label of each (1 if the left half holds more ink). Panel B: test accuracy against training size with no augmentation, up–down flips (a true invariance), left–right flips keeping the label (false) and left–right flips with the label reversed (the flip's true effect); mean and 10–90% band over 20 seeds. An augmentation helps exactly when its assumption about the label is true.](../images/augmentation.png){#fig-augmentation}
+
+@fig-augmentation shows the four training sets side by side. The failures that generalize:
+
+- **A symmetry the task does not have.** A horizontal flip that suits many photographs is wrong
+  for text, digits and anything with handedness.
+- **A symmetry that holds only at small strength.** Rotating a 6 slightly keeps it a 6;
+  rotating it by half a turn makes it a 9. Policies with a single magnitude parameter make this
+  a tuning choice, but the choice is still an assumption about $p$.
+- **Augmenting the evaluation data.** Test-time inputs are draws from $p$; transforming them
+  measures something else.
+
 ## What the toy cannot show
+
+The side label is exactly symmetric, so whether an augmentation is right can be decided by
+construction. Real symmetries are approximate, partial and strength-dependent, and nothing
+measures them except held-out data. The demonstration uses a linear model on tiny images.
+Networks that learn their own features may gain more, or less, from the same augmentation.
 
 ## Connections
 
-- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): the neighboring chapter.
-- [Distribution Shift](10-distribution-shift.qmd#sec-shift): the neighboring chapter.
+- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): the plausible invariances
+  of each data type, which augmentation turns into training data.
+- [Labels](02-labels.qmd#sec-labels): a false invariance creates label noise that depends on
+  $x$, the hardest kind to detect.
+- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): augmentation and SMOTE
+  both add synthetic examples, under different assumptions about where the label is known.
+- [loss-functions-lab, Contrastive Objectives](https://ioannisantoniadis.github.io/loss-functions-lab/chapters/14-contrastive-objectives.html):
+  augmentation as the source of positive pairs in self-supervised learning.

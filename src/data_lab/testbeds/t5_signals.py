@@ -92,3 +92,34 @@ def flip_up_down(images: np.ndarray) -> np.ndarray:
 def flip_left_right(images: np.ndarray) -> np.ndarray:
     """Label-reversing for the side task, exactly."""
     return images[:, :, ::-1]
+
+
+def tone_classes(
+    n: int, rng: np.random.Generator, fs: float = 8_000.0, duration: float = 0.25,
+    noise: float = 1.0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """n noisy tones, alternating classes: class 0 at a frequency drawn from 400-600 Hz, class 1
+    from 1,200-1,400 Hz; random phase. Returns (waveforms, labels)."""
+    waves, labels = [], []
+    for i in range(n):
+        c = i % 2
+        f = rng.uniform(400, 600) if c == 0 else rng.uniform(1_200, 1_400)
+        _, x = sinusoids([f], [1.0], fs, duration, noise=noise, rng=rng)
+        waves.append(x)
+        labels.append(c)
+    return np.array(waves), np.array(labels)
+
+
+def log_power_spectrum(waves: np.ndarray, fs: float = 8_000.0, nperseg: int = 256):
+    """Per-frequency log of the time-averaged spectrogram magnitude: a phase-free representation."""
+    return np.array([np.log(spectrogram(x, fs, nperseg)[2].mean(axis=1) + 1e-12) for x in waves])
+
+
+def ar1_series(length: int, phi: float, noise: float, rng: np.random.Generator) -> np.ndarray:
+    """y_t = s_t + noise * e_t with a latent AR(1) s_t = phi s_{t-1} + u_t (unit innovations):
+    strongly autocorrelated when phi is close to 1."""
+    s = np.zeros(length)
+    u = rng.standard_normal(length)
+    for t in range(1, length):
+        s[t] = phi * s[t - 1] + u[t]
+    return s + noise * rng.standard_normal(length)

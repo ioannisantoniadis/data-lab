@@ -11,6 +11,8 @@ from scipy.special import gamma
 
 from data_lab.testbeds.t2_zipf import (
     ZipfStream,
+    at_labels,
+    dedup_selector,
     oracle_selector,
     pool_selector,
     uniform_selector,
@@ -181,3 +183,75 @@ def test_pool_selector_ties_are_not_broken_by_index():
     picks = [pool_selector(Flat(1.0), 100, 1_000, np.random.default_rng(s)) for s in range(50)]
     mean_index = np.mean(np.concatenate(picks))
     assert 400 < mean_index < 600  # uniform over 1..1000 has mean 500.5
+
+
+# --- what coverage buys: per label versus per draw (the chapter 13 review) -------------------
+
+
+@pytest.mark.parametrize("alpha", ALPHAS)
+def test_any_n_labels_cost_at_least_the_tail_mass(alpha):
+    """Optimality of the oracle: a memorizer that has labeled any n distinct features has error
+    at least sum_{i>n} p_i, because the n most probable features carry the most mass. Checked
+    on random n-subsets of the first 10 n features and on every selector here."""
+    stream = ZipfStream(alpha)
+    rng = np.random.default_rng(13_500)
+    for n in (10, 100, 1_000):
+        bound = float(stream.tail_mass(n))
+        for _ in range(20):
+            subset = rng.choice(np.arange(1, 10 * n + 1), size=n, replace=False)
+            assert stream.memorizer_error(subset) >= bound - 1e-12
+        if n <= 100:  # 1,000 new features at alpha = 2 take about 5e8 draws
+            assert stream.memorizer_error(dedup_selector(stream, n, rng)[0]) >= bound - 1e-12
+        assert stream.memorizer_error(pool_selector(stream, n, 10 * n, rng)) >= bound - 1e-12
+
+
+@pytest.mark.parametrize("alpha", ALPHAS)
+def test_deduplicated_stream_reaches_the_oracle_exponent_per_label(alpha):
+    """Labeling each feature the first time it appears in a uniform stream (no knowledge of p)
+    has, per label, the oracle's exponent -alpha, at a constant factor beta Gamma(beta)^(1+alpha)
+    of its error (pi/2 at alpha = 1). The constant follows from Hutter's integral approximation:
+    E[D_m] ~ Gamma(beta) (A m)^(1/s) and E_m ~ A^(1/s) Gamma(beta) m^-beta / s, A = 1/zeta(s).
+    Checked on the exact curve (E[D_m], E_m)."""
+    stream = ZipfStream(alpha)
+    _, err = at_labels(stream, [1_000, 10_000])
+    oracle = stream.tail_mass([1_000, 10_000])
+    assert abs(_slope(1_000, err[0], 10_000, err[1]) + alpha) < 0.01
+    ratio = stream.beta * gamma(stream.beta) ** (1.0 + alpha)
+    assert err[1] / oracle[1] == pytest.approx(ratio, rel=0.01)
+    assert 1.0 < ratio < 2.0
+
+
+@pytest.mark.parametrize("alpha", ALPHAS)
+def test_deduplicated_stream_pays_n_to_the_one_plus_alpha_draws(alpha):
+    """The same gain per label costs draws: about n^(1+alpha) of them for n labels, the
+    asymptotic m = (n / Gamma(beta))^(1+alpha) / A. Per draw, the error is still E_m, uniform
+    sampling's n^-beta: nothing that reads a uniform stream beats it per draw."""
+    stream = ZipfStream(alpha)
+    n = np.array([1_000.0, 10_000.0])
+    m, _ = at_labels(stream, n)
+    predicted = (n / gamma(stream.beta)) ** stream.s * stream.normalizer
+    assert m == pytest.approx(predicted, rel=0.03)
+    assert abs(np.log(m[1] / m[0]) / np.log(10) - stream.s) < 0.02
+
+
+def test_deduplicated_stream_exact_curve_matches_simulation():
+    """At alpha = 1, stopping at exactly 1,000 labels (20 seeds) matches the exact curve at
+    E[D_m] = 1,000 in error and in draws, within 2%."""
+    stream = ZipfStream(1.0)
+    runs = [dedup_selector(stream, 1_000, np.random.default_rng(13_600 + s)) for s in range(20)]
+    m, err = at_labels(stream, [1_000])
+    assert np.mean([stream.memorizer_error(x) for x, _ in runs]) == pytest.approx(err[0], rel=0.02)
+    assert np.mean([d for _, d in runs]) == pytest.approx(m[0], rel=0.02)
+
+
+def test_small_pool_cannot_spend_its_budget():
+    """A pool of M = n draws has at most n distinct features, so the pool selector labels all
+    of them and its expected error is exactly uniform sampling's E_M: no gain at all."""
+    stream = ZipfStream(1.0)
+    n = 300
+    mean, se = _mc_mean(
+        lambda rng: stream.memorizer_error(pool_selector(stream, n, n, rng)),
+        seeds=300,
+        base_seed=13_700,
+    )
+    assert abs(mean - stream.expected_error(n).mid) < 4 * se

@@ -39,6 +39,20 @@ place where this book departs from them, and why.
 | $E_n$ | the expected test error after $n$ training examples: the **learning curve** |
 | $\beta$ | the exponent of a power-law learning curve, $E_n \propto n^{-\beta}$ |
 
+## Collection, labels and cleaning (Part I and II)
+
+| Symbol | Meaning |
+|---|---|
+| $s(x, y)$ | the probability that an example drawn from $p$ is kept when the data is collected; then $q \propto s\,p$ |
+| $W_h$, $S_h^2$, $S^2$ | in stratified sampling: stratum $h$'s share of the population, its variance, the overall variance |
+| $\eta(x)$ | the clean posterior $P(y = 1 \mid x)$ under $p$ |
+| $\tilde y$ | a recorded (possibly wrong) label, as opposed to the true $y$ |
+| $\rho_0$, $\rho_1$ | class-conditional flip rates: $P(\tilde y = 1 \mid y = 0)$ and $P(\tilde y = 0 \mid y = 1)$ |
+| $t_j$ | in confident learning, the average predicted probability of class $j$ among examples labeled $j$ |
+| $r$ | the share of a column's values that is missing |
+| $m(x)$ | the conditional mean of the transformed target, $\mathbb{E}[\log y \mid x]$ in [Changing the Shape](chapters/06-changing-the-shape.qmd#sec-shape) |
+| $\hat\varepsilon_i$ | a training residual of a fitted model |
+
 ## The long-tail testbed (T2)
 
 | Symbol | Meaning |
@@ -48,6 +62,8 @@ place where this book departs from them, and why.
 | $K$ | the support size, when the feature set is truncated for computation |
 | $E^{\text{oracle}}_n$ | the error of the oracle coverage selector that labels features $1, \dots, n$: $\sum_{i>n} p_i$ |
 | $M$ | the size of an unlabeled pool a selector may inspect |
+| $m$, $D_m$ | the number of draws from a uniform stream, and the number of distinct features among them (the labels used when only new features are labeled) |
+| $s$, $A$ | $s = \alpha + 1$ and $A = 1/\zeta(s)$, so that $p_i = A\,i^{-s}$ |
 | $c$ | the constant in an asymptotic power law $E_n \approx c\,n^{-\beta}$ |
 | $\zeta(s)$, $\Gamma$ | the Riemann zeta function $\sum_{i\ge1} i^{-s}$; the gamma function |
 

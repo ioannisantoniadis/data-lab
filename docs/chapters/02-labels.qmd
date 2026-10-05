@@ -1,28 +1,140 @@
 # Labels {#sec-labels}
 
-::: {.callout-warning title="Stub"}
-Planned for Phase 2 (SPEC §15). Not yet written; nothing on this page is a claim.
-:::
-
-## Planned coverage {.unnumbered}
-
-- Class-conditional label noise and its effect on the learned classifier (D)
-- Label-error detection (S)
+The previous chapter asked which examples a model sees. This one asks what those examples say.
+A label is not the truth. It is what an annotator, a log or a rule recorded, and it can be wrong
+in ways that depend on the class. A model trained on labels learns the labels, errors included,
+so the questions are what a given kind of error does to the learned model, and when the wrong
+labels can be found.
 
 ## The problem
 
+Write $y$ for the true class and $\tilde y$ for the recorded one. A model fit to recorded labels
+by a proper loss estimates $P(\tilde y = 1 \mid x)$, not the clean posterior
+$\eta(x) = P(y = 1 \mid x)$ under the target distribution. In the language of the four levers,
+noisy labels make the training distribution's conditional $q(\tilde y \mid x)$ differ from
+$p(y \mid x)$, which is the same kind of damage that selection on $y$ does
+([The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp)). What remains to
+work out is what that difference looks like, and whether it moves the decisions the model makes.
+
 ## Assumptions
+
+1. **Class-conditional noise.** Each label is flipped independently, with a probability that
+   depends on its true class but not on $x$. This is the assumption confident learning makes
+   [@northcutt2019confident, §2]. Write $\rho_0 = P(\tilde y = 1 \mid y = 0)$ and
+   $\rho_1 = P(\tilde y = 0 \mid y = 1)$, with $\rho_0 + \rho_1 < 1$. If the flip probability
+   depends on $x$ (annotators err more on hard cases), the formula below holds only
+   pointwise, with rates that vary over the input space, and the boundary can move anywhere.
+2. **Binary classes.** The multiclass case replaces the two rates by a matrix of transition
+   probabilities; the reasoning is the same.
+3. **The model is flexible enough to estimate the posterior of what it is trained on.**
 
 ## Derivation or demonstration
 
+By total probability, the recorded label is 1 when a true 1 survives or a true 0 flips:
+
+$$
+P(\tilde y = 1 \mid x) = (1 - \rho_1)\,\eta(x) + \rho_0\,\big(1 - \eta(x)\big)
+= \rho_0 + (1 - \rho_0 - \rho_1)\,\eta(x).
+$$
+
+The learned posterior is an affine function of the clean one: shrunk toward the middle and
+shifted. A classifier that thresholds it at 1/2 therefore thresholds $\eta$ elsewhere.
+
+::: {.callout-note title="Result: what class-conditional noise does to the classifier"}
+A model fit to labels with flip rates $\rho_0, \rho_1$ learns
+$\rho_0 + (1 - \rho_0 - \rho_1)\,\eta(x)$. Its decision rule predicts 1 when
+
+$$
+\eta(x) > \frac{1/2 - \rho_0}{1 - \rho_0 - \rho_1}.
+$$
+
+With symmetric noise, $\rho_0 = \rho_1$, the threshold is 1/2: the decisions of the clean Bayes
+classifier survive, though the probabilities are miscalibrated. With asymmetric noise the
+boundary moves, and the clean risk rises above the Bayes risk at any sample size.
+:::
+
+**Demonstration on T1.** With 400,000 draws from the tabular testbed, the frequency of
+$\tilde y = 1$ within narrow bins of $\eta$ matches the formula in every bin, for both
+$(\rho_0, \rho_1) = (0.2, 0.2)$ and $(0.1, 0.3)$. An isotonic regression of the noisy labels on
+the model's score (a flexible fit that assumes only monotonicity) crosses 1/2 within 0.25 of the
+predicted point, measured on the score (log-odds) scale. For the asymmetric case, that point is $\eta = 0.67$, and the clean risk of the
+resulting rule is 0.278 against a Bayes risk of 0.251
+(`tests/test_labels.py::test_class_conditional_noise_moves_the_learned_boundary`).
+
+Labels that are measurements behave more kindly. If a regression target is recorded with
+zero-mean noise independent of $x$, the conditional mean that squared error estimates is
+unchanged, and only the variance grows. Losses that are robust to heavy-tailed or outlying
+labels are derived in
+[loss-functions-lab](https://ioannisantoniadis.github.io/loss-functions-lab/chapters/05-laplace-robust-losses.html).
+
+**Finding label errors.** Confident learning estimates which examples are mislabeled from
+out-of-sample predicted probabilities, obtained by cross-validation
+[@northcutt2019confident, §3.1]. For each class $j$, the threshold $t_j$ is the average
+predicted probability of class $j$ among examples labeled $j$. An example labeled $i$ is
+counted under class $j$ when its predicted probability of $j$ is at least $t_j$ (the most
+probable such class, if several qualify). The counts form the *confident joint*, and the
+examples counted off its diagonal are the estimated label errors (the paper's "CL method 2").
+`tests/test_labels.py::test_confident_joint_flags_exactly_the_off_diagonal_examples` checks
+the implementation on a case small enough to work by hand.
+
+{{< include ../includes/cards/confident-learning.md >}}
+
+::: {.callout-note title="In practice"}
+`sklearn.model_selection.cross_val_predict(model, X, y, cv=4, method="predict_proba")`
+produces the out-of-sample probabilities confident learning needs. The paper uses four folds
+unless otherwise specified [@northcutt2019confident, §5]. In scikit-learn 1.9, `LogisticRegression` is L2-regularized
+by default (`C=1.0`); `C=np.inf` gives the unpenalized fit used here.
+:::
+
 ## What it does to the learned model
+
+Noise changes the target the model aims at, not just the variance of its estimate, so it does
+not average out. Symmetric noise is the forgiving case for decisions and the unforgiving one
+for probabilities: the ranking of examples and the boundary survive, but every probability is
+pulled toward the middle. A model used to set prices, triage risk or combine with a prior then
+uses the wrong numbers. Asymmetric noise moves the boundary itself, in favor of the class that is
+mislabeled less often: with $\rho_1 > \rho_0$, fewer examples are predicted to be class 1.
+
+Cleaning the labels pulls the other lever back: if the flagged examples are the flipped ones,
+removing them restores $\eta$. Whether they are depends on something the noise rates do not
+show.
 
 ## Failure modes
 
+![Panel A: the posterior learned from noisy labels against the clean posterior, for no noise and two class-conditional noise settings (exact); open circles mark where each crosses 1/2. Panel B: confident learning on 4,000 examples with 20% symmetric flips, as the clean classes are made more or less separable; mean and standard deviation over 10 seeds. Symmetric noise keeps the boundary and asymmetric noise moves it; flipped labels can be found reliably only when the clean classes barely overlap.](../images/label_noise.png){#fig-label-noise}
+
+The main failure is in the detector, not the noise model. Confident learning cannot tell an
+injected flip from a correct label on an example whose true class is itself uncertain. On T1
+with 20% symmetric flips (@fig-label-noise, panel B), its precision falls from 0.999 when the
+clean classes overlap little (Bayes risk 0.04) to 0.34 when they overlap a lot (Bayes risk
+0.35). The latter is barely above the 0.20 that flagging at random would achieve. Recall stays
+between 0.55 and 0.69: flips of examples near the boundary look like ordinary examples and are
+missed at every level of overlap. In the chapter's terms, cleaning by confident learning pulls
+the labels lever safely only where the data has little aleatoric uncertainty
+(`tests/test_labels.py::test_confident_learning_precision_depends_on_separability`).
+
+Two more ways it breaks:
+
+- **Noise that depends on $x$.** Annotators confuse the hard cases, which are the ones near the
+  boundary. That is the worst place for flips and the place the detector is weakest.
+- **In-sample probabilities.** A model scored on its own training data has partly memorized
+  the wrong labels and will vouch for them. Confident learning relies on out-of-sample
+  predictions for this reason.
+
 ## What the toy cannot show
+
+T1's noise is exactly class-conditional and its classes overlap by a known amount. Real label
+noise mixes systematic confusions, annotator disagreement and ambiguity that no relabeling
+could resolve. The figure's separability axis is unobservable in practice, and so is the noise
+rate.
 
 ## Connections
 
-- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): the neighboring chapter.
-- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): the neighboring chapter.
-- [loss-functions-lab, Designing a New Loss](https://ioannisantoniadis.github.io/loss-functions-lab/chapters/18-designing-a-new-loss.html): owns loss-based remedies for label noise.
+- [The Data-Generating Process](01-the-data-generating-process.qmd#sec-dgp): selection on
+  $y$ and noisy labels both make $q(y \mid x) \ne p(y \mid x)$.
+- [Data Types and Their Structure](03-data-types.qmd#sec-data-types): what counts as the same
+  example, and as an error, depends on the data type.
+- [Sampling and Weighting](08-sampling-and-weighting.qmd#sec-sampling): correcting a known
+  prior shift is the same affine reasoning, applied to class priors instead of flips.
+- [loss-functions-lab, Designing a New Loss](https://ioannisantoniadis.github.io/loss-functions-lab/chapters/18-designing-a-new-loss.html):
+  loss-based remedies for label noise, which this book does not re-derive.
