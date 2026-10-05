@@ -144,10 +144,11 @@ Sorscher et al.'s theoretical setting [@sorscher2022beyond]:
 - a max-margin student.
 
 The test error is exact, $\phi/\pi$, where $\phi$ is the angle between student and teacher.
-A test checks this against 400,000 fresh labeled points. The student is found by solving the
-dual problem, then polished by an exact active-set step. Its objective matches a primal
-reference solver to $10^{-6}$, and its duality gap is below $10^{-14}$ at the paper's sizes
-(`tests/test_t3_teacher_student.py`).
+A test checks this against 400,000 fresh labeled points. The student is found exactly: finding the
+shortest $J$ with every margin at least 1 is a least-distance problem, which reduces to
+non-negative least squares, solved by an active-set method that terminates. Every solution is
+certified by its optimality conditions before it is used, and its objective matches a primal
+reference solver (`tests/test_t3_teacher_student.py`).
 
 **What T3 cannot show.** Networks are not perceptrons, and real difficulty scores are noisy
 estimates of a margin that is known exactly here.

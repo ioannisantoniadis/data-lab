@@ -267,7 +267,14 @@ Status markers: planned · researching · drafted · done (passes the quality ba
    budget; plotted at the labels it actually uses, it lies on the deduplicated stream's curve.
    The per-label story holds and is now simpler: what any selector reading a uniform stream
    buys per label is skipping repeats, plus at most the ordering constant.
-4. **Notation slip caught:** chapter 15's first draft used bare σ for a standard deviation;
+4. **The first CI run exposed an inexact solver.** The T3 max-margin solver (L-BFGS-B plus an
+   active-set polish, Phase 1) silently returned non-optimal students in 3 of 60 solves at
+   P/N = 16 (minimum margin as low as 0.62), and took over 120 s on the CI runner. It is
+   replaced by an exact least-distance solver via non-negative least squares that certifies
+   every answer by its KKT conditions or raises; the pruning experiment runs in 1 s, and no
+   published number changed at its printed precision. A second test (`arccos` near 1 compared
+   to 10⁻⁹) was ill-posed and now compares cosines.
+5. **Notation slip caught:** chapter 15's first draft used bare σ for a standard deviation;
    the book reserves it for the sigmoid (now σ_ε).
 
 ## Durations

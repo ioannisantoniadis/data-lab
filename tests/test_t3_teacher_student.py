@@ -33,7 +33,9 @@ def test_probe_has_the_requested_angle():
     for theta in (0.0, 0.3, 1.0):
         p = prob.probe(theta, rng)
         cos = p @ prob.teacher / np.linalg.norm(prob.teacher)
-        assert np.arccos(np.clip(cos, -1, 1)) == pytest.approx(theta, abs=1e-9)
+        # Compare cosines: arccos has an infinite slope at 1, so rounding of order 1e-16 in
+        # cos becomes about 1e-8 in the angle at theta = 0 (seen on the CI runner).
+        assert cos == pytest.approx(np.cos(theta), abs=1e-12)
 
 
 def test_prune_keeps_the_hardest_or_easiest_fraction():
@@ -91,3 +93,18 @@ def test_more_data_lowers_the_student_error_without_pruning():
             x, y = prob.sample(int(ratio * 100), rng)
             errs[ratio].append(prob.test_error(max_margin(x, y).weights))
     assert np.mean(errs[3.16]) < np.mean(errs[1.26])
+
+
+def test_max_margin_is_exact_where_the_first_solver_was_not():
+    """Regression: an earlier L-BFGS-B solver with an active-set polish returned non-optimal
+    students on these pruned sets (seeds 4, 6 and 18 of the pruning experiment at P/N = 16,
+    hardest half; minimum margin as low as 0.62). The exact solver satisfies the KKT
+    conditions on each, and raises instead of returning an uncertified answer."""
+    for seed in (4, 6, 18):
+        rng = np.random.default_rng(17_000 + seed)
+        prob = make_problem(100, rng)
+        x, y = prob.sample(1_600, rng)
+        xs, ys = prune(x, y, prob.probe(0.0, rng), 0.5, "hard")
+        res = max_margin(xs, ys)
+        assert res.min_functional_margin == pytest.approx(1.0, abs=1e-9)
+        assert abs(res.duality_gap) < 1e-9 * (res.weights @ res.weights)

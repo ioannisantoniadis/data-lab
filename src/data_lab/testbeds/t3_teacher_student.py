@@ -7,8 +7,9 @@
   vector: smallest margins = hardest, largest = easiest. With angle theta = 0 the probe is the
   teacher itself, so "easy" and "hard" are known exactly.
 - The student is the max-margin separator (the solution SGD converges to on separable data, per
-  the paper; the paper solves the QP with CVXPY). Here: the hard-margin dual, solved by
-  L-BFGS-B with non-negativity bounds, checked by KKT conditions and a duality gap.
+  the paper; the paper solves the QP with CVXPY). Here: the primal as a least-distance
+  problem, solved exactly by non-negative least squares, and certified by the KKT conditions
+  and a zero duality gap.
 - Test error is exact, with no test sample: eps = arccos(R) / pi, R = J . T / (|J| |T|)
   (paper, Appendix A.1). A test checks it against fresh teacher-labeled data.
 - The paper's simulations: N = 200, P = alpha_tot N for alpha_tot from 10^0.1 to 10^0.5,
@@ -21,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import nnls
 
 
 @dataclass(frozen=True)
@@ -69,29 +70,6 @@ def prune(x, y, probe, keep_fraction: float, keep: str = "hard"):
     return x[idx], y[idx]
 
 
-def _polish_active_set(gram: np.ndarray, a0: np.ndarray, max_iter: int = 200) -> np.ndarray:
-    """Make a first-order solution exact. On the support S of the optimum the KKT conditions
-    are equalities, (gram a)_S = 1 with a_S >= 0, and (gram a)_i >= 1 off S. Solve on S by
-    least squares, drop negative entries, add violated constraints, and repeat."""
-    support = a0 > 1e-6 * max(a0.max(), 1e-300)
-    a = a0
-    for _ in range(max_iter):
-        idx = np.flatnonzero(support)
-        sol, *_ = np.linalg.lstsq(gram[np.ix_(idx, idx)], np.ones(idx.size), rcond=None)
-        if np.any(sol < 0):
-            support[idx[sol < 0]] = False
-            continue
-        cand = np.zeros_like(a0)
-        cand[idx] = sol
-        margins = gram @ cand
-        violated = (~support) & (margins < 1.0 - 1e-10)
-        if not violated.any():
-            return cand
-        support[np.argmin(np.where(violated, margins, np.inf))] = True
-        a = cand
-    return a  # fall back to the last iterate; callers check the KKT conditions
-
-
 @dataclass(frozen=True)
 class MaxMarginResult:
     weights: np.ndarray  # J = sum_mu a_mu y_mu x_mu, scaled so that min_mu y_mu J . x_mu = 1
@@ -100,33 +78,42 @@ class MaxMarginResult:
     min_functional_margin: float
 
 
-def max_margin(x: np.ndarray, y: np.ndarray, tol: float = 1e-10) -> MaxMarginResult:
+def max_margin(x: np.ndarray, y: np.ndarray, tol: float = 1e-8) -> MaxMarginResult:
     """Hard-margin separator through the origin: min |J|^2 / 2 s.t. y_mu J . x_mu >= 1.
 
-    Dual: max sum(a) - |Z' a|^2 / 2 over a >= 0, with Z = y[:, None] * x and J = Z' a.
-    At the optimum the primal and dual objectives agree, so the duality gap
-    |J|^2 / 2 - (sum(a) - |J|^2 / 2) = |J|^2 - sum(a) is zero.
+    A least-distance problem, solved exactly by non-negative least squares (Lawson and
+    Hanson's reduction; scipy's ``nnls`` is their active-set algorithm, which terminates in
+    finitely many steps): with Z = y[:, None] * x (P x N), E = [Z'; 1'] and f = (0, ..., 0, 1),
+    let u >= 0 minimize |E u - f| and r = E u - f. Then J = -r[:N] / r[N], and the dual
+    variables are a = -u / r[N], so that J = Z' a.
+
+    The result is certified, not assumed: the KKT conditions (min margin 1, a >= 0,
+    complementary slackness, zero duality gap |J|^2 - sum(a)) must hold to ``tol`` relative to
+    |J|^2, or a ValueError is raised. (An earlier L-BFGS-B solver with an active-set polish
+    could stop short of the optimum without saying so; the final audit's CI run exposed it.)
     """
     z = y[:, None] * x
-    gram = z @ z.T
-
-    def objective(a):
-        ga = gram @ a
-        return 0.5 * a @ ga - a.sum(), ga - 1.0
-
-    res = minimize(
-        objective,
-        x0=np.full(len(y), 1e-3),
-        jac=True,
-        method="L-BFGS-B",
-        bounds=[(0.0, None)] * len(y),
-        options={"maxiter": 100_000, "maxfun": 200_000, "ftol": tol, "gtol": tol},
+    p_count, dim = z.shape
+    e = np.vstack([z.T, np.ones((1, p_count))])
+    f = np.zeros(dim + 1)
+    f[-1] = 1.0
+    u, _ = nnls(e, f, maxiter=50 * p_count)
+    r = e @ u - f
+    if abs(r[-1]) < 1e-12:
+        raise ValueError("the constraints are infeasible: the data are not separable")
+    j = -r[:dim] / r[-1]
+    a = -u / r[-1]
+    margins = z @ j
+    scale = float(j @ j)
+    gap = float(scale - a.sum())
+    ok = (
+        abs(margins.min() - 1.0) <= tol
+        and a.min() >= -tol
+        and np.max(np.abs(a * (margins - 1.0))) <= tol * max(scale, 1.0)
+        and abs(gap) <= tol * max(scale, 1.0)
+        and np.allclose(z.T @ a, j, atol=tol * max(np.sqrt(scale), 1.0))
     )
-    a = _polish_active_set(gram, res.x)
-    j = z.T @ a
-    return MaxMarginResult(
-        weights=j,
-        dual=a,
-        duality_gap=float(j @ j - a.sum()),
-        min_functional_margin=float(np.min(z @ j)),
-    )
+    if not ok:
+        raise ValueError("max-margin solution failed its KKT check")
+    return MaxMarginResult(weights=j, dual=a, duality_gap=gap,
+                           min_functional_margin=float(margins.min()))
