@@ -67,3 +67,14 @@ def test_extrapolated_data_requirement_is_biased_and_needs_the_floor(extrapolati
     assert np.all((s[:, 1] <= n_star) & (n_star <= s[:, 2]))
     assert np.median(s[:, 0]) < 0.75 * n_star
     assert np.median(known["exponent"]) > 1.4
+
+
+def test_ungrouped_bootstrap_understates_the_interval():
+    """Without grouping copies of a resampled row, copies land in both the training and the
+    held-out part of a pilot split, the pilot curve looks better than it is, and the bootstrap
+    interval for the error at n = 2,000 is less than half as wide (median over 15 pilots)."""
+    def width(grouped):
+        r = extrapolation_experiment(TASK, pilots=15, grouped_bootstrap=grouped)
+        return np.median(r["error"][:, 2] - r["error"][:, 1])
+
+    assert width(False) < 0.5 * width(True)

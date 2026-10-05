@@ -277,6 +277,15 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 5. **Notation slip caught:** chapter 15's first draft used bare σ for a standard deviation;
    the book reserves it for the sigmoid (now σ_ε).
 
+## After publication: cross-repository assessment (2026-10-05)
+
+A protocol for comparing the learning-repo books on output quality
+([`assessment/PROTOCOL.md`](assessment/PROTOCOL.md)), piloted on data-lab and rl-for-llms
+([`assessment/pilot-2026-10-05.md`](assessment/pilot-2026-10-05.md)). Neither book was
+measurably more correct (4% sampled defect rate each; about 3 and 4 minor defects per 10,000
+words, no major ones); data-lab is more verifiable (generated numbers, named tests). The 8
+confirmed data-lab defects are fixed. Protocol v2 runs on all four books next.
+
 ## Durations
 
 | Phase | Started | Gate reached |

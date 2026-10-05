@@ -103,9 +103,10 @@ floor, which a small pilot cannot see.
   invisible in a pilot, and they decide the answer (panel C).
 - **Pre-asymptotic curves.** Early in the curve, error falls faster than it will later. A fit
   that sees only the early part predicts that the target comes sooner than it does.
-- **Duplicates in the bootstrap.** Without grouping copies of a row, an earlier run of this
-  experiment produced intervals for the error at $n = 2{,}000$ about a third as wide:
-  misleadingly confident.
+- **Duplicates in the bootstrap.** A bootstrap resample repeats rows. Without grouping the
+  copies, they land on both sides of a pilot's split, and the intervals for the error at
+  $n = 2{,}000$ came out less than half as wide: misleadingly confident
+  (`tests/test_learning_curves.py::test_ungrouped_bootstrap_understates_the_interval`).
 - **A form that does not fit.** POW3 is a common choice, not a law
   [@viering2021shape, §4.1].
 

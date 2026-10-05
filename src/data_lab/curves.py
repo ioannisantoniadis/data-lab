@@ -122,12 +122,14 @@ def n_for_target(params, target: float) -> float:
 
 def extrapolation_experiment(task: LinearGaussianTask, pilots: int = 30, pilot_size: int = 200,
                              boots: int = 40, at: int = 2_000, target_excess: float = 0.05,
-                             known_floor: bool = False):
+                             known_floor: bool = False, grouped_bootstrap: bool = True):
     """For independent pilot datasets: the POW3 extrapolation of the error at ``at`` with a
     90% bootstrap interval, the extrapolated training size needed to reach the error
     sigma^2 (1 + target_excess) with its interval, and the fitted exponent B. With
-    ``known_floor``, C is fixed at the true noise level sigma^2. Returns a dict with arrays
-    "error" and "size" (pilots x 3: estimate, low, high), "exponent" (pilots,), "target"."""
+    ``known_floor``, C is fixed at the true noise level sigma^2. ``grouped_bootstrap=False``
+    lets copies of a row land on both sides of a pilot split (the leak the default prevents).
+    Returns a dict with arrays "error" and "size" (pilots x 3: estimate, low, high),
+    "exponent" (pilots,), "target"."""
     import warnings
 
     target = task.bayes_risk * (1 + target_excess)
@@ -143,7 +145,8 @@ def extrapolation_experiment(task: LinearGaussianTask, pilots: int = 30, pilot_s
             for _ in range(boots):
                 i = rng.integers(0, pilot_size, pilot_size)
                 try:
-                    p = fit_pow3(pilot_curve(z[i], y[i], rng, groups=i), floor=floor)
+                    groups = i if grouped_bootstrap else None
+                    p = fit_pow3(pilot_curve(z[i], y[i], rng, groups=groups), floor=floor)
                 except RuntimeError:
                     continue
                 boot_err.append(pow3(at, *p))

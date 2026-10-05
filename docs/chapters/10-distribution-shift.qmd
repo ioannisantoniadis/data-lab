@@ -47,7 +47,7 @@ answer a question that is no longer asked.
 positive label, and … the m examples in $S_Q$ with a negative label"; if the two samples come
 from the same distribution, "the classification accuracy of a binary classifier on a held-out
 subset … should remain near chance-level" [@lopezpaz2016revisiting, abstract]. The testbed's
-version fits a logistic regression on half of each sample. It then tests whether the classifier's
+version fits a logistic regression, on the features and their squares, to half of each sample. It then tests whether the classifier's
 scores on the held-out halves separate the two samples, using a one-sided Mann–Whitney U test.
 That test is valid when there is no shift, because the held-out scores are then exchangeable.
 Over 400 no-shift seeds its p-values were uniform

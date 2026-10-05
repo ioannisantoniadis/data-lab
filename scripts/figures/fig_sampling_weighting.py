@@ -6,9 +6,9 @@ eta, for a plain logistic regression, one trained on a balanced undersample, one
 class weights, and the undersampled model after the prior-shift correction (one seed, binned).
 Panel B: coefficient on z_1 across 30 seeds for undersampling (q) and class weights (w).
 Panel C: importance-weighted and unweighted estimates of the risk under a shifted p from 1,000
-examples of q, against the exact risk, as the shift grows (500 seeds; median and 5-95% band).
-Panel D: share of SMOTE's synthetic points in the gap between two minority clusters of 20
-examples, by neighbor count k, against the true share (50 seeds).
+examples of q, against the exact risk, as the shift grows (500 seeds; mean and 5-95% band).
+Panel D: share of SMOTE's synthetic points in the gap between the two clusters of a
+20-example minority class, by neighbor count k, against the true share (50 seeds).
 
 This figure makes visible that resampling and reweighting aim at the same tilted posterior,
 which the prior-shift correction undoes, that the two differ in variance, that importance
@@ -164,7 +164,7 @@ boot_rng = np.random.default_rng(0)
 boot = [iw["iw"][boot_rng.integers(0, 500, 500), -1].var(ddof=1) for _ in range(2_000)]
 boot_lo, boot_hi = np.percentile(boot, [2.5, 97.5])
 publish("ch8", {
-    "prior": fmt(prior, 3),
+    "prior_pct": fmt(100 * prior, 0),
     "plain_err": fmt(imb["plain"].mean(), 4),
     "under_err": fmt(imb["under"].mean(), 3),
     "weighted_err": fmt(imb["weighted"].mean(), 3),

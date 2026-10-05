@@ -57,7 +57,7 @@ def test_shuffled_cross_validation_leaks_time():
         ordered = cv_mse(TimeSeriesSplit(5))
         knn.fit(t[past], y[past])
         future_mse = np.mean((knn.predict(t[future]) - y[future]) ** 2)
-        assert shuffled < 0.1 * future_mse
+        assert shuffled * 14 <= future_mse  # the chapter: "a factor of at least 14"
         ordered_all.append(ordered)
         future_all.append(future_mse)
     ratio = np.mean(ordered_all) / np.mean(future_all)

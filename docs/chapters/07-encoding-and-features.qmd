@@ -42,7 +42,7 @@ maps each level to one of $m$ columns by a hash function, with no stored vocabul
 hash, $k$ levels occupy on average $m\,(1 - (1 - 1/m)^k)$ of the $m$ columns. Hashing 2,000
 levels with scikit-learn's `FeatureHasher` used 880 of 1,024 columns (expected 879) and 1,775
 of 8,192 (expected 1,775). Even with four times as many columns as levels, the 2,000 levels
-fell into only 1,775 columns, so at least 225 of them share a column with another
+fell into only 1,775 columns, so at least 226 of them share a column with another
 (`tests/test_encoding.py::test_feature_hashing_collides_at_the_expected_rate`).
 
 {{< include ../includes/cards/feature-hashing.md >}}

@@ -49,7 +49,7 @@ is the population fraction of ones and $\bar y$ the sample's [@king2001logistic,
 confirms that the two corrections agree to machine precision
 (`tests/test_imbalance.py::test_king_zeng_intercept_correction_equals_saerens_for_logit`).
 
-On T1 with {{< var ch8.prior >}} positives (30 seeds, 20,000 examples each), a plain logistic
+On T1 with {{< var ch8.prior_pct >}}% positives (30 seeds, 20,000 examples each), a plain logistic
 regression's predicted probabilities sat on average {{< var ch8.plain_err >}} from the true
 posterior. Trained on a balanced undersample, the distance rose to
 {{< var ch8.under_err >}}; with balanced class weights, {{< var ch8.weighted_err >}}. After the
@@ -155,7 +155,7 @@ weighted estimate's exact variance equals that of a plain average of about that 
 
 ## Failure modes
 
-![Panel A: on T1 with 5% positives, predicted probability against the true posterior, for a plain model, one trained on a balanced undersample, one with balanced class weights, and the undersampled model after prior correction. Panel B: the coefficient on $z_1$ over 30 seeds, undersampling against class weights (truth 1.5). Panel C: importance-weighted and unweighted estimates of the risk under a shifted $p$ from 1,000 examples of $q$, against the exact risk (500 seeds). Panel D: share of SMOTE's synthetic points in the gap between two minority clusters of 20 examples, by neighbor count (50 seeds). Balancing tilts probabilities in a correctable way; the lever sets the variance; importance weights trade bias for variance; SMOTE fills gaps once $k$ exceeds a cluster.](../images/sampling_weighting.png){#fig-sampling-weighting}
+![Panel A: on T1 with 5% positives, predicted probability against the true posterior, for a plain model, one trained on a balanced undersample, one with balanced class weights, and the undersampled model after prior correction. Panel B: the coefficient on $z_1$ over 30 seeds, undersampling against class weights (truth 1.5). Panel C: importance-weighted and unweighted estimates of the risk under a shifted $p$ from 1,000 examples of $q$, against the exact risk (500 seeds). Panel D: share of SMOTE's synthetic points in the gap between the two clusters of a 20-example minority class, by neighbor count (50 seeds). Balancing tilts probabilities in a correctable way; the lever sets the variance; importance weights trade bias for variance; SMOTE fills gaps once $k$ exceeds a cluster.](../images/sampling_weighting.png){#fig-sampling-weighting}
 
 @fig-sampling-weighting shows the four effects. The failure modes:
 

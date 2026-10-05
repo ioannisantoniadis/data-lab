@@ -112,7 +112,7 @@
     "n_eff_last": "100",
     "naive_mean": "0.250",
     "plain_err": "0.0021",
-    "prior": "0.050",
+    "prior_pct": "5",
     "smote_gap_k15": "20.9",
     "smote_gap_k19": "26.0",
     "smote_gap_k5": "1.2",
