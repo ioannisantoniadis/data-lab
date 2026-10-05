@@ -126,7 +126,7 @@ Status markers: planned · researching · drafted · done (passes the quality ba
       fixed the same day (below) except the two that need the owner (commit, CI).
 - [ ] Decision test with Part II material (SPEC §14.1, partial): needs 3–5 human readers;
       cannot be run by the agent.
-- [ ] The owner reads chapters 1–7 (SPEC §13).
+- [x] The owner reads chapters 1–7 (SPEC §13): Gate 2, 2026-10-05.
 
 ### What Phase 2 found (evidence over the spec)
 
@@ -194,7 +194,7 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 - [x] Checks: ruff clean; pytest 142 passed; render 0 warnings; 22,257 prose words;
       portability checks pass; mechanical checks: no missing or orphan images, no unresolved
       citations or links.
-- [ ] The owner reads chapters 8–14 (SPEC §13).
+- [x] The owner accepts chapters 8–15 (SPEC §13): 2026-10-05, at publication.
 
 ### What Phase 3 found (evidence over the spec)
 

@@ -1,10 +1,5 @@
 # Welcome {.unnumbered}
 
-::: {.callout-warning title="Work in progress"}
-Every chapter is drafted; the later chapters and the synthesis are awaiting the author's
-review.
-:::
-
 A model learns the distribution it is trained on, through the representation it is given. This
 book is about that sentence. It asks where data for learning comes from, how it is transformed,
 how the training distribution is shaped, and how much of it (and which of it) a model needs.
