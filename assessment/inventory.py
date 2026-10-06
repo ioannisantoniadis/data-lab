@@ -41,7 +41,13 @@ def blocks(text: str):
     while i < n:
         line = lines[i]
         s = line.strip()
-        if not s or s.startswith(("#", ":::", "{{< include", "```", "|---", "| |")):
+        if s.startswith("```"):  # a code block or executable cell: code, not prose
+            i += 1
+            while i < n and not lines[i].strip().startswith("```"):
+                i += 1
+            i += 1
+            continue
+        if not s or s.startswith(("#", ":::", "{{< include", "|---", "| |")):
             i += 1
             continue
         if s.startswith("$$"):

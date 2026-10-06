@@ -1,4 +1,4 @@
-# Cross-repository quality assessment: protocol v2
+# Cross-repository quality assessment: protocol v3
 
 A way to compare the learning-repo books (data-lab, rl-for-llms, loss-functions-lab,
 optimization-lab, and later ones) on **output quality**, not on how much process they
@@ -20,8 +20,10 @@ the reader tests of data-lab's SPEC §14, which are optional.
    visible paper trail cannot raise a score.
 3. **Measure the auditor too.** Known errors are planted in each copy; the share found
    estimates the audit's sensitivity, so a clean result can be interpreted.
-4. **Two independent auditors per repository,** on the same sample, so agreement can be
-   measured.
+4. **One auditor per repository by default,** on a mid-size model (Sonnet), in lean mode
+   (§3). A second auditor is added only to measure agreement. In v1–v2 the two auditors
+   agreed on nearly every real defect and found 26 of 28 planted errors between them, so the
+   second mostly doubled the cost (each full audit used about 230,000–320,000 tokens).
 5. **Fixed before results are seen.** Sampling rule, defect definitions and severity scale
    are those below, applied identically to every repository. Changes make a new protocol
    version, and earlier results are not compared across versions.
@@ -56,7 +58,10 @@ the reader tests of data-lab's SPEC §14, which are optional.
    (seed = 2026 plus the repository's name) draws the quota from each stratum; a shortfall is
    filled from the largest remaining strata. **30 items per repository** for a quick check,
    **100** when the sampled rate is to be compared. Both auditors get the same sample.
-3. **Planted errors** (the orchestrator, after sampling; the key is kept outside the copy):
+3. **Planted errors** (the orchestrator; the key is kept outside the copy). **Plant first,
+   then draw the sample from the planted copy:** in v1–v2 the sample was drawn before
+   planting, so an auditor could find in-sample plants by comparing the sample text with the
+   copy, which inflated in-sample sensitivity.
    four per repository, two inside sampled items and two outside, one of each kind:
    - a changed number (in prose or in the published-number file);
    - a changed citation locator or a word changed inside a quotation;
@@ -68,7 +73,10 @@ the reader tests of data-lab's SPEC §14, which are optional.
 ## 3. Auditing (each auditor, a fresh session with no other context)
 
 The auditor works only in its copy (scratch files in `<copy>/_audit/`) and on primary
-sources. It must not open the original repository, its GitHub page or its published site.
+sources, fetched with `curl` or a fetch tool. **No browser control:** a v2 auditor opened Chrome
+tabs to view interactive figures. **Lean mode** (default): skip rebuilding the site and
+re-running every figure, since CI already shows the books build and v1–v2 found every build
+reproducible; judge captions against the code that draws them. It must not open the original repository, its GitHub page or its published site.
 It returns its report as its final message (subagents cannot write report files); the
 orchestrator saves it.
 
@@ -156,3 +164,5 @@ These feed the monorepo's shared conventions, and do not count toward the qualit
 - **v2 (2026-10-05):** primary metric changed to confirmed defect density; blinding keeps the
   README's commands and files the tests read; the sampler skips non-assertions; reports are
   returned as text; scratch work stays inside the copy.
+- **v3 (2026-10-07):** one auditor per book on Sonnet, lean mode, no browser; sample drawn
+  after planting. Results of the v2 run in `results-2026-10-07.md`.

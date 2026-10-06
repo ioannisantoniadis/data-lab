@@ -46,6 +46,9 @@ def main(src: str, dst: str) -> None:
     for name in PROCESS_FILES:
         if name not in keep:
             (dst_p / name).unlink(missing_ok=True)
+    for spec in dst_p.glob("*spec*.md"):  # a repository's own spec, under any name
+        if spec.name not in keep:
+            spec.unlink()
     for name in PROCESS_DIRS:
         shutil.rmtree(dst_p / name, ignore_errors=True)
     (dst_p / "README.md").write_text(neutral_readme(src_p))
