@@ -277,14 +277,15 @@ Status markers: planned · researching · drafted · done (passes the quality ba
 5. **Notation slip caught:** chapter 15's first draft used bare σ for a standard deviation;
    the book reserves it for the sigmoid (now σ_ε).
 
-## After publication: cross-repository assessment (2026-10-05)
+## After publication: cross-repository assessment (2026-10-05 to 2026-10-07)
 
-A protocol for comparing the learning-repo books on output quality
-([`assessment/PROTOCOL.md`](assessment/PROTOCOL.md)), piloted on data-lab and rl-for-llms
-([`assessment/pilot-2026-10-05.md`](assessment/pilot-2026-10-05.md)). Neither book was
-measurably more correct (4% sampled defect rate each; about 3 and 4 minor defects per 10,000
-words, no major ones); data-lab is more verifiable (generated numbers, named tests). The 8
-confirmed data-lab defects are fixed. Protocol v2 runs on all four books next.
+A blinded comparison of the four learning-repo books on confirmed defects per 10,000 words,
+developed here and then moved to the `learning-repo-compare` skill in
+[claude-skills](https://github.com/ioannisantoniadis/claude-skills/tree/main/plugins/learning-repo/skills/learning-repo-compare)
+(protocol, scripts, and the baseline results), because it concerns all four books, not this
+one. Result for data-lab: about 3 confirmed defects per 10,000 words, no major ones; the 8
+found were fixed (d85d7ec). The sibling books' defects are in their own issues
+(loss-functions-lab#1, rl-for-llms#1, optimization-lab#2).
 
 ## Durations
 
